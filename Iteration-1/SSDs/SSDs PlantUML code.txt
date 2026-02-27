@@ -1,0 +1,14 @@
+SSDs for critical use cases : { createTask(), viewTasks(), updateTask(), completeTask(), cancelTask() }
+
+SSD: createTask()
+
+@startuml
+actor User
+participant ":__PTMS__" as System
+User -> System : createTask(title, description, dueDate, priority)
+alt valid input
+    System --> User : success()
+else invalid input
+    System --> User : error("Invalid input")
+End
+@enduml
