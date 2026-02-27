@@ -66,3 +66,21 @@ end
 
 
 
+SSD: cancelTask()
+
+@startuml
+actor User
+participant ":__PTMS__" as S
+
+User -> S : cancelTask(taskId)
+
+alt task exists and is not already canceled
+    S --> User : taskCanceled()
+else task not found
+    S --> User : error("Task not found")
+else task is already canceled
+    S --> User : error("Task is already canceled")
+end
+@enduml
+
+
