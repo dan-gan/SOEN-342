@@ -30,6 +30,7 @@ end
 
 
 SSD: updateTask()
+
 @startuml
 actor User
 participant ":__PTMS__" as S
@@ -44,4 +45,24 @@ else invalid data
     S --> User : error("Invalid input")
 end
 @enduml
+
+
+SSD: completeTask()
+
+@startuml
+actor User
+participant ":__PTMS__" as S
+
+User -> S : completeTask(taskId)
+
+alt task exists and task is not complete
+    S --> User : taskCompleted()
+else task not found
+    S --> User : error("Task not found")
+else task is already complete
+    S --> User : error("Task is already complete")
+end
+@enduml
+
+
 
