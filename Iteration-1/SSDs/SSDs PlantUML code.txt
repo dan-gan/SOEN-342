@@ -29,3 +29,19 @@ end
 @enduml
 
 
+SSD: updateTask()
+@startuml
+actor User
+participant ":__PTMS__" as S
+
+User -> S : updateTask(taskId, updatedData)
+
+alt task exists and data valid
+    S --> User : taskUpdated()
+else task not found
+    S --> User : error("Task not found")
+else invalid data
+    S --> User : error("Invalid input")
+end
+@enduml
+
