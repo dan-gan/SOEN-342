@@ -12,3 +12,20 @@ else invalid input
     System --> User : error("Invalid input")
 End
 @enduml
+
+SSD: viewTask()
+
+@startuml
+actor User
+participant ":__PTMS__" as S
+
+User -> S : viewTasks(criteria)
+
+alt tasks found
+    S --> User : taskList(tasks)
+else no tasks found
+    S --> User : emptyList()
+end
+@enduml
+
+
