@@ -1,0 +1,10 @@
+Contract: CO2: viewTasks()
+System operation: viewTasks(criteria)
+Cross References: Use Case: View Tasks.
+Preconditions: 
+•	None
+
+Postconditions (success):
+•	No objects were created or changed
+Postconditions (failure):
+•	No objects were created or changed
