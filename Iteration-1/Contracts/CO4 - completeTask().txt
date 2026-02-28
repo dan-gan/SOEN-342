@@ -1,0 +1,10 @@
+Contract: CO4: completeTask()
+System operation: completeTask(taskId: int)
+Cross References: Use Case: Complete Task
+Preconditions: 
+•	Task instance t exists such that t.id = taskId
+•	t.status != completed
+Postconditions (success):
+•	t.status was set to completed 
+Postconditions (failure):
+•	No Task instance was modified

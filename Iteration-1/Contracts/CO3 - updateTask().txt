@@ -1,0 +1,16 @@
+Contract: CO3: updateTask()
+System operation: updateTask(taskId: int, title: String, description: String, dueDate: DateTime, priority: PriorityLevel) 
+Cross References: Use Case: Update Task
+Preconditions: 
+•	Task instance t exists such that t.id = taskId
+•	title != null and title != “”
+
+Postconditions (success):
+•	t.title was set to title
+•	t.description was set to description 
+•	t.dueDate was set to dueDate
+•	t.priority was set to priority
+
+Postconditions (failure):
+•	No task instance was modified
+

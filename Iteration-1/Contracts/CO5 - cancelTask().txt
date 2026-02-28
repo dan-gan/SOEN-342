@@ -1,0 +1,11 @@
+Contract: CO5: cancelTask()
+System operation: cancelTask(taskId: int)
+Cross References: Use Case: Cancel Task
+Preconditions: 
+•	A Task instance t exists such that t.id = taskId
+•	t.status != cancelled
+
+Postconditions (success):
+•	t.status was set to cancelled
+Postconditions (failure):
+•	No Task instance was modified
