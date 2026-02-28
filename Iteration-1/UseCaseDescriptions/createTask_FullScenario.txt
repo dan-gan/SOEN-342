@@ -1,0 +1,24 @@
+One full scenario for a critical use-case, with at least one success and one failure case (equivalent system sequence diagram to be provided in the above).
+
+Use Case Name: Create Task
+Primary Actor: User
+Scope: PTMS
+Level: User goal
+Preconditions: System is running
+Postconditions (Success): New Task is created and stored
+Postconditions (Failure): No Task is created
+
+Main Success Scenario
+1.	User selects “Create Task”.
+2.	System prompts for task details.
+3.	User enters title, optional description, optional due date, and priority.
+4.	User submits.
+5.	System validates input.
+6.	System creates the Task.
+7.	System confirms task creation.
+
+Failure Scenario (Invalid Input)
+3a. User submits missing required data (e.g., no title).
+4a. System detects invalid input.
+5a. System displays error message.
+6a. Use case ends with no task created.

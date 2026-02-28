@@ -1,0 +1,18 @@
+Contract: CO1: createTask()
+System operation: createTask(title: String, description: String, dueDate: DateTime, priority: PriorityLevel)
+Cross References: Use Case: Create Task.
+Preconditions: 
+•	title != null and title != “”
+
+Postconditions (success):
+•	Task instance t was created 
+•	t.id was set to a new unique id
+•	t.title was set to title	 
+•	t.description was set to description
+•	t.dueDate was set to dueDate
+•	t.priority was set to priority
+•	t.status was set to open
+•	t.creationDate was set to current date/time 	 
+
+Postconditions (failure):
+•	No Task instance was created
