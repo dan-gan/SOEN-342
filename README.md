@@ -5,13 +5,8 @@ dangan: Daniel Ganchev - 40315755  Team Lead
 <br>
 
 ## Teamwork and Collaboration
-Every artifact produced has been reviewed by each team member, and finally approved by the team lead.
-
-### Iteration 1 disclaimer 
-The artifacts were committed by the team lead, but in reality each member worked on their assigned task.
-* Dmitrii : Use Case Diagram
-* Soumeya: Domain Model
-* Daniel: SSDs, A full use case scenario and operation contracts 
+All team members participated in requirements analysis and modelling activities. 
+<br>Each artifact was collaboratively reviewed and refined before finalization.
 
 ## System Description
 A command line application to help a single user create, organize, and monitor tasks over time! 
