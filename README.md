@@ -4,6 +4,15 @@ dangan: Daniel Ganchev - 40315755  Team Lead
 <br> Hildthelsta: Dmitrii Cazacu - 40314501
 <br>
 
+## Teamwork and Collaboration
+Every artifact produced has been reviewed by each team member, and finally approved by the team lead.
+
+### Iteration 1 disclaimer 
+The artifacts were committed by the team lead, but in reality each member worked on their assigned task.
+* Dmitrii : Use Case Diagram
+* Soumeya: Domain Model
+* Daniel: SSDs, A full use case scenario and operation contracts 
+
 ## System Description
 A command line application to help a single user create, organize, and monitor tasks over time! 
 <br> The system supports task lifecycle management, project grouping, tagging, subtask tracking, and activity history logging.
@@ -26,7 +35,7 @@ A command line application to help a single user create, organize, and monitor t
 * Use Case Diagram (critical/non-critical use cases)
 * Domain Model 
 * System Sequence Diagrams (SSDs) for critical use cases
-* A Full Use Case Scenario 
+* A Full Use Case Scenario (createTask())
 * System operations + operation contracts
 <br>
 
