@@ -1,0 +1,121 @@
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+
+' =========================
+'   ENUMERATIONS
+' =========================
+
+enum TaskStatus {
+  open
+  completed
+  cancelled
+}
+
+enum PriorityLevel {
+  low
+  medium
+  high
+}
+
+' =========================
+'   CORE DOMAIN CLASSES
+' =========================
+
+class Task {
+  id: int
+  title : String
+  description : String [0..1]
+  creationDate : DateTime
+  dueDate : DateTime [0..1]
+  priority : PriorityLevel
+  status : TaskStatus
+}
+
+class Project {
+  id: int
+  name : String
+  description: String [0..1]
+  collaborators: Collaborator[]
+}
+
+class Subtask {
+  title : String
+  status : TaskStatus
+}
+
+class Tag { 
+  id : int
+  name : String
+}
+
+class ActivityEntry {
+  timestamp: DateTime
+  description : String
+}
+
+interface Recurrence {
+    startDate: DateTime
+    endDate: DateTime
+    pattern: daily, weekly, monthly
+}
+
+class DailyRecurrence implements Recurrence{
+
+}
+
+class WeeklyRecurrence implements Recurrence{
+
+}
+
+class MonthlyRecurrence implements Recurrence{
+
+}
+
+abstract class Collaborator{
+    assignedTasks: Task[limit]
+    <u>limit</u>: int
+    status: Overloaded, OK
+}
+
+class JuniorCollaborator extends Collaborator{
+    limit: 10
+}
+
+class IntermediateCollaborator extends Collaborator{
+    limit: 5
+}
+
+class SeniorCollaborator extends Collaborator{
+    limit: 2
+}
+
+' =========================
+'   ASSOCIATIONS
+' =========================
+
+' Task ↔ Project (optional)
+Task "0..*" -- "0..1" Project 
+
+' Task ↔ Subtask (composition)
+Task "1" *-- "0..*" Subtask 
+
+' Task ↔ Tag (many-to-many)
+Task "0..*" -- "0..*" Tag 
+
+' Task ↔ ActivityEntry (composition)
+Task "1" *-- "0..*" ActivityEntry : records >
+
+' Task ↔ Task (composition)
+Task "1" *-- "0..*" Task : generates recurrences >
+
+' Task ↔ Task (aggregation)
+Task "1" o-- "0..1" Recurrence : implements >
+
+' Task ↔ Collaborator
+Task "0..limit" -- "0..1" Collaborator
+
+' Project ↔ Collaborator
+Project "1" -- "0..*" Collaborator
+
+@enduml
