@@ -1,0 +1,68 @@
+@startuml
+left to right direction
+actor "Single User" as fc
+rectangle "Personal Task Management System" {
+  package "Critical Use Case"{
+
+    usecase "Create Task" as UC1
+    usecase "Update Task" as UCU
+    usecase "View Tasks" as UCV
+    usecase "Complete Task" as UC9
+    usecase "Cancel Task" as UC10
+    
+  }
+  
+  package "Non-Critical Use Case"{
+      usecase "Create Project" as UC8
+      usecase "Assign Task to Project" as UC2
+      usecase "Add Subtask" as UC3
+      usecase "Assign Tags to Task" as UC4
+      usecase "View Activity History per Task" as UC7
+      usecase "Create Recurring Task" as UC11
+      
+        usecase "Update Title" as u1
+        usecase "Update Description" as u2
+        usecase "Update Priority" as u3
+        usecase "Update Due Date" as u4
+        usecase "Update Associated Project" as u6
+        usecase "Update Tags" as u7
+
+      
+
+      usecase "List by Due Date (Specific/Range)" as v1
+      usecase "List by Priority" as v2
+      usecase "List by Status" as v3
+      usecase "List by Project" as v4
+      usecase "List by Tag" as v5    
+      
+      usecase "Search by keyword (Title/Description)" as v6
+  }
+}
+
+UC1 <.. UC11 : <<extend>> 
+fc --> UC1
+fc --> UC2
+fc --> UC3
+fc --> UC4
+fc --> UCU
+fc --> UCV
+fc --> UC7
+fc --> UC8
+fc --> UC9
+fc --> UC10
+
+UCU <.. u1 : <<extend>>
+UCU <.. u2 : <<extend>>
+UCU <.. u3 : <<extend>>
+UCU <.. u4 : <<extend>>
+UCU <.. u6 : <<extend>>
+UCU <.. u7 : <<extend>>
+
+UCV <.. v1 : <<extend>>
+UCV <.. v2 : <<extend>>
+UCV <.. v3 : <<extend>>
+UCV <.. v4 : <<extend>>
+UCV <.. v5 : <<extend>>
+UCV <.. v6 : <<extend>>
+
+@enduml
