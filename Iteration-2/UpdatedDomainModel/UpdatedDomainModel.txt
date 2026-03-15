@@ -18,6 +18,11 @@ enum PriorityLevel {
   high
 }
 
+enum CollaboratorStatus{
+  OK
+  Overloaded
+}
+
 ' =========================
 '   CORE DOMAIN CLASSES
 ' =========================
@@ -36,10 +41,10 @@ class Project {
   id: int
   name : String
   description: String [0..1]
-  collaborators: Collaborator[]
 }
 
 class Subtask {
+  id: int
   title : String
   status : TaskStatus
 }
@@ -54,28 +59,28 @@ class ActivityEntry {
   description : String
 }
 
-interface Recurrence {
+abstract class Recurrence {
     startDate: DateTime
     endDate: DateTime
-    pattern: daily, weekly, monthly
 }
 
-class DailyRecurrence implements Recurrence{
-
-}
-
-class WeeklyRecurrence implements Recurrence{
+class DailyRecurrence extends Recurrence{
 
 }
 
-class MonthlyRecurrence implements Recurrence{
+class WeeklyRecurrence extends Recurrence{
+
+}
+
+class MonthlyRecurrence extends Recurrence{
 
 }
 
 abstract class Collaborator{
-    assignedTasks: Task[limit]
-    <u>limit</u>: int
-    status: Overloaded, OK
+    assignedTasks: Task[0..*]
+    limit: int
+    name: String
+    status: CollaboratorStatus
 }
 
 class JuniorCollaborator extends Collaborator{
@@ -89,6 +94,7 @@ class IntermediateCollaborator extends Collaborator{
 class SeniorCollaborator extends Collaborator{
     limit: 2
 }
+
 
 ' =========================
 '   ASSOCIATIONS
@@ -106,14 +112,12 @@ Task "0..*" -- "0..*" Tag
 ' Task ↔ ActivityEntry (composition)
 Task "1" *-- "0..*" ActivityEntry : records >
 
-' Task ↔ Task (composition)
-Task "1" *-- "0..*" Task : generates recurrences >
-
-' Task ↔ Task (aggregation)
-Task "1" o-- "0..1" Recurrence : implements >
+' Task ↔ Recurrence 
+Task "0..*" -- "0..1" Recurrence : generates occurrences <
+/'Recurrence "1" -- "0..1" Task'/
 
 ' Task ↔ Collaborator
-Task "0..limit" -- "0..1" Collaborator
+Task "0..*" -- "0..1" Collaborator
 
 ' Project ↔ Collaborator
 Project "1" -- "0..*" Collaborator
