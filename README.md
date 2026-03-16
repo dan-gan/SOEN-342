@@ -22,21 +22,35 @@ A command line application to help a single user create, organize, and monitor t
     /Contracts
     /UseCaseDescriptions
 /Iteration-2
+    /UpdatedUseCaseDiagram
+    /UpdatedDomainModel
+    /UpdatedSSDs
+    /ClassDiagram
+    /InteractionDiagrams
 /Iteration-3
 /Iteration-4
+/src
 ```
 
-### Iteration 1
-* Use Case Diagram (critical/non-critical use cases)
+### Iteration 1 Deliverables
+* Use Case Diagram 
 * Domain Model 
 * System Sequence Diagrams (SSDs) for critical use cases
 * A Full Use Case Scenario (createTask())
 * System operations + operation contracts
 <br>
 
-### Iteration 2
-...
-
+### Iteration 2 Deliverables
+* Updated Use-case diagram  
+* Updated UML domain model
+* Updated SSDs
+* UML interaction diagrams for critical use-cases
+* UML class diagram (partial design model)
+* Prototype: A functional prototype of the system with features: 
+    - Task Search and View
+    - Import from CSV
+    - Export from CSV
+ 
 ### Iteration 3
 ...
 
