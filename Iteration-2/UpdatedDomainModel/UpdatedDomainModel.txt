@@ -7,20 +7,20 @@ skinparam classAttributeIconSize 0
 ' =========================
 
 enum TaskStatus {
-  open
-  completed
-  cancelled
+  OPEN
+  COMPLETED
+  CANCELLED
 }
 
 enum PriorityLevel {
-  low
-  medium
-  high
+  LOW
+  MEDIUM
+  HIGH
 }
 
-enum CollaboratorStatus{
+enum CollaboratorStatus {
   OK
-  Overloaded
+  OVERLOADED
 }
 
 ' =========================
@@ -77,22 +77,18 @@ class MonthlyRecurrence extends Recurrence{
 }
 
 abstract class Collaborator{
-    assignedTasks: Task[0..*]
     limit: int
     name: String
     status: CollaboratorStatus
 }
 
 class JuniorCollaborator extends Collaborator{
-    limit: 10
 }
 
 class IntermediateCollaborator extends Collaborator{
-    limit: 5
 }
 
 class SeniorCollaborator extends Collaborator{
-    limit: 2
 }
 
 
@@ -100,26 +96,18 @@ class SeniorCollaborator extends Collaborator{
 '   ASSOCIATIONS
 ' =========================
 
-' Task ↔ Project (optional)
-Task "0..*" -- "0..1" Project 
+Task "0..*" -- "0..1" Project : grouped in >
 
-' Task ↔ Subtask (composition)
-Task "1" *-- "0..*" Subtask 
+Task "1" *-- "0..*" Subtask : contains >
 
-' Task ↔ Tag (many-to-many)
-Task "0..*" -- "0..*" Tag 
+Task "0..*" -- "0..*" Tag : Labelled with >
 
-' Task ↔ ActivityEntry (composition)
 Task "1" *-- "0..*" ActivityEntry : records >
 
-' Task ↔ Recurrence 
 Task "0..*" -- "0..1" Recurrence : generates occurrences <
-/'Recurrence "1" -- "0..1" Task'/
 
-' Task ↔ Collaborator
-Task "0..*" -- "0..1" Collaborator
+Task "0..*" -- "0..1" Collaborator : assigned to <
 
-' Project ↔ Collaborator
-Project "1" -- "0..*" Collaborator
+Project "1" -- "0..*" Collaborator : includes >
 
 @enduml
