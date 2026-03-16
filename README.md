@@ -1,4 +1,4 @@
-## SOEN-342: Personal Task Management System (PTMS)
+## Personal Task Management System (PTMS)
 dangan: Daniel Ganchev - 40315755  Team Lead
 <br> soumeyadiop: Souméya Diop - 40197160
 <br> Hildthelsta: Dmitrii Cazacu - 40314501
@@ -28,15 +28,16 @@ A command line application to help a single user create, organize, and monitor t
 /src/main/java
 ```
 
-### Iteration 1 Deliverables
+## Deliverables
+
+### Iteration 1 
 * Use Case Diagram 
 * Domain Model 
 * System Sequence Diagrams (SSDs) for critical use cases
 * A Full Use Case Scenario (createTask())
 * System operations + operation contracts
-<br>
 
-### Iteration 2 Deliverables
+### Iteration 2 
 * Updated Use-case diagram  
 * Updated UML domain model
 * Updated SSDs
