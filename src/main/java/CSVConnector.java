@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class CSVConnector{
 
@@ -105,7 +104,6 @@ public class CSVConnector{
                             task.setTaskStatus(TaskStatus.valueOf(value));
                             break;
 
-                        // --- Subtask ---
                         case "&SUBTITLE":
                             currentSubtask = new Subtask();
                             currentSubtask.setTitle(value);
