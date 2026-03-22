@@ -23,18 +23,34 @@ enum CollaboratorStatus {
   OVERLOADED
 }
 
+enum CollaboratorCategory {
+  JUNIOR
+  INTERMEDIATE
+  SENIOR
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 ' =========================
 ' ENTITY CLASSES
 ' =========================
 
 class Task {
-    -id: int
-    -title: String
-    -description: String[0..1]
-    -creationDate: Date
-    -dueDate: Date[0..1]
-    -priorityLevel: PriorityLevel
-    -status: TaskStatus
+  - id : int
+  - title : String
+  - description : String[0..1]
+  - creationDate : Date
+  - dueDate : Date[0..1]
+  - priorityLevel : PriorityLevel
+  - status : TaskStatus
 
   + complete() : void
   + cancel() : void
@@ -43,13 +59,25 @@ class Task {
   + updatePriority(priority:PriorityLevel) : void
   + updateDueDate(date:LocalDateTime) : void
   + createSubtask(title:String) : Subtask
+  + assignCollaborator(collab:Collaborator) : void
 }
+
+note left of Task
+  Constraint:
+  (title, dueDate) must be unique
+end note
+
+note left of Task
+  When assigning a collaborator:
+  - creates a Subtask
+  - links it to the collaborator
+end note
 
 class Project {
   - id : int
   - name : String
   - description : String[0..1]
-  
+
   + addTask(task:Task) : void
   + removeTask(task:Task) : void
 }
@@ -76,43 +104,64 @@ class ActivityEntry {
 ' COLLABORATORS
 ' =========================
 
-abstract class Collaborator {
+class Collaborator {
   - name : String
+  - category : CollaboratorCategory
   - taskLimit : int
   - status : CollaboratorStatus
 
+  + Collaborator(name:String, category:CollaboratorCategory)
   + assignTask(task:Task) : void
   + changeTaskLimit(newLimit:int) : void
+  + getDefaultTaskLimit(category:CollaboratorCategory) : int
 }
 
-class JuniorCollaborator extends Collaborator
-class IntermediateCollaborator extends Collaborator
-class SeniorCollaborator extends Collaborator
+note right of Collaborator
+  Constructor sets:
+  taskLimit = getDefaultTaskLimit(category)
+end note
+
+note right of Collaborator
+  Default task limit set with switch(category):
+  JUNIOR -> 10
+  INTERMEDIATE -> 5
+  SENIOR -> 2
+end note
 
 ' =========================
 ' RECURRENCE
 ' =========================
 
-interface Recurrence {
+abstract class Recurrence {
   - startDate : Date
   - endDate : Date
+  - interval : int
 }
 
-class DailyRecurrence implements Recurrence
-class WeeklyRecurrence implements Recurrence
-class MonthlyRecurrence implements Recurrence
+class DailyRecurrence
+
+class WeeklyRecurrence {
+  - daysOfWeek : Set<DayOfWeek>
+}
+
+class MonthlyRecurrence {
+  - dayOfMonth : int
+}
+
+Recurrence <|-- DailyRecurrence
+Recurrence <|-- WeeklyRecurrence
+Recurrence <|-- MonthlyRecurrence
 
 ' =========================
 ' SYSTEM / SERVICE CLASSES
 ' =========================
 
 class TaskManager {
-
   + createTask(title:String) : Task
   + updateTask(task:Task) : void
   + completeTask(task:Task) : void
   + cancelTask(task:Task) : void
-  + searchTasks(keyword:String) : List<Task>
+  + searchTasks(criteria:String) : List<Task>
   + createProject(name:String) : void
 }
 
@@ -128,15 +177,18 @@ class CSVExporter {
 ' ASSOCIATIONS
 ' =========================
 
-Task "0..*" -- "tasks {ordered, List}\n0..1" Project 
-Task "1" *-- "subtasks\n{ordered, List}\n0..*" Subtask 
-Task "1" *-- "activityEntries\n{ordered, List}\n0..*" ActivityEntry 
+Task "0..*" -- "tasks {ordered, List}\n0..1" Project
+Task "1" *-- "subtasks\n{ordered, List}\n0..*" Subtask
+Task "1" *-- "activityEntries\n{ordered, List}\n0..*" ActivityEntry
 Task "0..*" -- "tags\n{ordered, List}\n0..*" Tag
 
-Task "0..*\n                        assignedTasks {ordered, List}" -- "0..1" Collaborator   
-Project "1" -- "collaborators {ordered, List}\n0..*" Collaborator 
+Task "0..*\nassignedTasks {ordered, List}" -- "0..1" Collaborator
+Project "1" -- "collaborators {ordered, List}\n0..*" Collaborator
 
 Task "0..*" -- "0..1" Recurrence : has-a >
+
+Subtask "0..*" --> "1" Collaborator : assignedTo
+
 
 TaskManager "1" -- "0..*" Task : tasks\n{ordered, List}
 TaskManager --> CSVImporter
