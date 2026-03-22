@@ -23,28 +23,44 @@ enum CollaboratorStatus {
   OVERLOADED
 }
 
+enum CollaboratorCategory {
+  JUNIOR
+  INTERMEDIATE
+  SENIOR
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 ' =========================
 '   CORE DOMAIN CLASSES
 ' =========================
 
 class Task {
-  id: int
+  id : int
   title : String
   description : String [0..1]
   creationDate : DateTime
   dueDate : DateTime [0..1]
-  priority : PriorityLevel
+  priorityLevel : PriorityLevel
   status : TaskStatus
 }
 
 class Project {
-  id: int
+  id : int
   name : String
-  description: String [0..1]
+  description : String [0..1]
 }
 
 class Subtask {
-  id: int
+  id : int
   title : String
   status : TaskStatus
 }
@@ -55,42 +71,41 @@ class Tag {
 }
 
 class ActivityEntry {
-  timestamp: DateTime
+  timestamp : DateTime
   description : String
 }
 
 abstract class Recurrence {
-    startDate: DateTime
-    endDate: DateTime
+  startDate : DateTime
+  endDate : DateTime
+  interval : int
 }
 
-class DailyRecurrence extends Recurrence{
-
+class DailyRecurrence {
 }
 
-class WeeklyRecurrence extends Recurrence{
-
+class WeeklyRecurrence {
+  daysOfWeek : Set<DayOfWeek>
 }
 
-class MonthlyRecurrence extends Recurrence{
-
+class MonthlyRecurrence {
+  dayOfMonth : int
 }
 
-abstract class Collaborator{
-    limit: int
-    name: String
-    status: CollaboratorStatus
+class Collaborator {
+  name : String
+  category : CollaboratorCategory
+  taskLimit : int
+  status : CollaboratorStatus
 }
 
-class JuniorCollaborator extends Collaborator{
-}
+' =========================
+'   GENERALIZATION
+' =========================
 
-class IntermediateCollaborator extends Collaborator{
-}
-
-class SeniorCollaborator extends Collaborator{
-}
-
+Recurrence <|-- DailyRecurrence
+Recurrence <|-- WeeklyRecurrence
+Recurrence <|-- MonthlyRecurrence
 
 ' =========================
 '   ASSOCIATIONS
@@ -100,14 +115,16 @@ Task "0..*" -- "0..1" Project : grouped in >
 
 Task "1" *-- "0..*" Subtask : contains >
 
-Task "0..*" -- "0..*" Tag : Labelled with >
+Task "0..*" -- "0..*" Tag : labelled with >
 
 Task "1" *-- "0..*" ActivityEntry : records >
 
-Task "0..*" -- "0..1" Recurrence : generates occurrences <
+Task "0..*" -- "0..1" Recurrence : has-a >
 
 Task "0..*" -- "0..1" Collaborator : assigned to <
 
 Project "1" -- "0..*" Collaborator : includes >
+
+Subtask "0..*" --> "1" Collaborator : assignedTo
 
 @enduml
