@@ -7,15 +7,13 @@ import java.util.List;
 
 public class CSVConnector{
 
+    private static final String FILE_NAME = "TaskCSV.csv";
+
     public static boolean exportTasks(List<Task> tasks, String filePath){
-        try{
-            File f = new File(filePath+"/TaskCSV.csv");
-            FileWriter fWriter = new FileWriter(f);
-            if(!f.exists()){
-                f.createNewFile();
-            }
-            BufferedWriter writer = new BufferedWriter(fWriter);
-            for(Task task: tasks){
+        File f = new File(filePath, FILE_NAME);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))){;
+            for(Task task: tasks){                
                 String entry = task.getId() + ",&ID," + task.getTitle()+ ",&TITLE,"+task.getDescription()+",&DESCRIPTION,"+task.getCreationDate()+",&CREATIONDATE,"
                 +task.getDueDate()+",&DUEDATE,"+task.getPriorityLevel()+",&PRIORITYLEVEL,"+task.getStatus()
                 +",&STATUS,";
@@ -33,20 +31,20 @@ public class CSVConnector{
             }
             writer.close();
         }
-        catch (Exception e){
+        catch (IOException e){
             System.out.println(e.getMessage());
             return false;
         }
-        return false;
+        return true;
     }
 
-    public static ArrayList<Task> importTasks(String filePath){
-        ArrayList<Task> tasks = new ArrayList<>();
+    public static List<Task> importTasks(String filePath){
+        List<Task> tasks = new ArrayList<>();
         File file = new File(filePath+"/TaskCSV.csv");
         String line;
-        if(!file.exists()){
-            return tasks;
-        }
+
+        if(!file.exists()) return tasks;
+
         try{
             BufferedReader reader = new BufferedReader(new FileReader(file));
 

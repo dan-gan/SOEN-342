@@ -2,13 +2,12 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class TaskManager {
 
 
     private static List<Task> tasks = new ArrayList<>();
-
-    private static CSVConnector CSVConnector = new CSVConnector();
 
     public static void main(String[] args) {
         
@@ -24,8 +23,8 @@ public class TaskManager {
             // System.out.println("\t3. Update a Task");
             // System.out.println("\t4. Complete a Task");
             // System.out.println("\t5. Cancel a Task");
-            System.out.println("\t6. Export Tasks to CSV");
-            System.out.println("\t7. Import Tasks from CSV");
+            System.out.println("\t3. Export Tasks to CSV");
+            System.out.println("\t4. Import Tasks from CSV");
             // System.out.println("\t8. Create a Project");
             System.out.println("\t0. Exit");
             input = kb.nextInt();
@@ -42,7 +41,7 @@ public class TaskManager {
                     break;
                 case 2:
                     int input2 = -1;
-                    while(input2 != 0){
+                    while(input2 != 8){
                         System.out.println("Choose an option: ");
                         System.out.println("\t0. No criteria (by due date, ascending order)");
                         System.out.println("\t1. Search by keyword (Title/Description)");
@@ -52,7 +51,8 @@ public class TaskManager {
                         System.out.println("\t5. List by Status");
                         System.out.println("\t6. List by Project");
                         System.out.println("\t7. List by Tag");
-
+                        System.out.println("\t8. Exit");
+                        input2 = kb.nextInt(); kb.nextLine();
                         switch(input2){
                             //"If no criteria, all open tasks are sorted by dueDate, ascending order"
                             default: 
@@ -63,7 +63,7 @@ public class TaskManager {
                             case 1:
                                 System.out.println("Enter keyword: ");
                                 String keyword = kb.nextLine();
-                                System.out.println(searchTasksKeyword(keyword));
+                                System.out.println(SearchTasks.searchTasksKeyword(tasks, keyword));
                                 break;
                             case 2:
                                 System.out.println("Enter Specific Due Date (DD-MM-YYYY: ");
@@ -78,13 +78,13 @@ public class TaskManager {
                                 int option = kb.nextInt(); kb.nextLine();
                                 switch(option){
                                     case 1:
-                                        searchTasksPriority(PriorityLevel.HIGH);
+                                        SearchTasks.searchTasksPriority(tasks, PriorityLevel.HIGH);
                                         break;
                                     case 2:
-                                        searchTasksPriority(PriorityLevel.MEDIUM);
+                                        SearchTasks.searchTasksPriority(tasks, PriorityLevel.MEDIUM);
                                         break;
                                     case 3:
-                                        searchTasksPriority(PriorityLevel.LOW);
+                                        SearchTasks.searchTasksPriority(tasks, PriorityLevel.LOW);
                                         break;
                                 }
                                 break;
@@ -96,13 +96,13 @@ public class TaskManager {
                                 int option2 = kb.nextInt(); kb.nextLine();  
                                 switch(option2){
                                     case 1:
-                                        searchTasksStatus(Status.OPEN);
+                                        SearchTasks.searchTasksStatus(tasks, Status.OPEN);
                                         break;
                                     case 2:
-                                        searchTasksStatus(Status.COMPLETED);
+                                        SearchTasks.searchTasksStatus(tasks, Status.COMPLETED);
                                         break;
                                     case 3:
-                                        searchTasksStatus(Status.CLOSED);
+                                        SearchTasks.searchTasksStatus(tasks, Status.CLOSED);
                                         break;
                                 }                              
                                 break;
@@ -129,42 +129,6 @@ public class TaskManager {
         Task t = new Task(title);
         tasks.add(t);
         return t;
-    }
-
-    public static List<Task> searchTasks(){ //NO CRITERIA -> SORTED BY DUE DATE, ASCENDING ORDER
-        List<Task> results = new ArrayList<>();
-
-        return results;
-    }
-
-    public static List<Task> searchTasksKeyword(String keyword){
-        List<Task> results = new ArrayList<>();
-        for(Task t : tasks){
-            if(t.getTitle().toLowerCase().contains(keyword.toLowerCase()) || t.getDescription().toLowerCase().contains(keyword.toLowerCase())){
-                results.add(t);
-            }
-        }
-        return results;
-    }    
-
-    public static List<Task> searchTasksPriority(PriorityLevel priority){
-        List<Task> results = new ArrayList<>();
-        for(Task t : tasks){
-            if(t.getPriorityLevel().equals(priority)){
-                results.add(t);
-            }
-        }
-        return results;
-    }
-
-    public static List<Task> searchTasksStatus(Status status){
-        List<Task> results = new ArrayList<>();
-        for(Task t : tasks){
-            if(t.getStatus().equals(status)){
-                results.add(t);
-            }
-        }
-        return results;
     }
 
     public static void updateTask(){

@@ -3,7 +3,7 @@ import java.util.List;
 public class Project {
     private int id;
     private static int idCounter;
-    private String title;       //mandatory
+    private String title;       //mandatory and UNIQUE 
     private String description; //optional
     private List<Task> tasks;   //0..*
 

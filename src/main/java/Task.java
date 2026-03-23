@@ -60,6 +60,11 @@ public class Task {
     public void setStatus(Status status) {this.status = status;}
     public void setProject(Project p){this.project = p;}
 
+    public void setSubtasks(List<Subtask> subtasks){this.subtasks = subtasks;}
+    public void setTags(List<Tag> tags){this.tags = tags;}
+    public void setActivityEntries(List<ActivityEntry> activityEntries){this.activityEntries = activityEntries;}
+
+
     public void addSubtask(Subtask subtask){
         this.subtasks.add(subtask);
     }
@@ -96,7 +101,7 @@ public class Task {
     //toString
     @Override
     public String toString(){
-        return "Task ID: " + this.id + "\nStatus: " + this.status + "\nPriority: " + this.priorityLevel 
+        return "\nTask ID: " + this.id + "\nStatus: " + this.status + "\nPriority: " + this.priorityLevel 
         + "\nTask Title: " + this.title + "\nDescription: " + this.description
         + "\ncreationDate: " + this.creationDate + "\ndueDate: " + this.dueDate; 
     }
