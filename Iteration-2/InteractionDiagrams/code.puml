@@ -1,0 +1,108 @@
+@startuml
+'title Sequence Diagram - Create Task
+
+actor User
+participant ":PTMS" as System
+participant "TaskManager" as TM
+participant "Task" as Task
+
+User -> System : createTask(title)
+System -> TM : createTask(...)
+TM -> Task : new Task(...)
+TM --> System : taskCreated
+System --> User : confirmation
+
+
+newpage
+'title Sequence Diagram - Update Task
+
+actor User
+participant ":PTMS" as System
+participant "TaskManager" as TM
+participant "Task" as Task
+
+User -> System : updateTask(taskId, updatedData)
+System -> TM : updateTask(...)
+
+TM -> Task : findTask(taskId)
+
+alt task exists
+    TM -> Task : updateTitle(...)
+    TM -> Task : updateDescription(...)
+    TM -> Task : updatePriority(...)
+    TM -> Task : updateDueDate(...)
+    TM --> System : success
+    System --> User : taskUpdated()
+
+else task not found
+    TM --> System : error("Task not found")
+    System --> User : error("Task not found")
+end
+
+
+newpage
+'title Sequence Diagram - View Tasks
+
+actor User
+participant ":PTMS" as System
+participant "TaskManager" as TM
+
+User -> System : viewTasks(criteria)
+System -> TM : searchTasks(criteria)
+
+TM --> System : taskList
+System --> User : displayTasks(taskList)
+
+
+newpage
+'title Sequence Diagram - Complete Task
+
+actor User
+participant ":PTMS" as System
+participant "TaskManager" as TM
+participant "Task" as Task
+participant "ActivityEntry" as Activity
+
+User -> System : completeTask(taskId)
+System -> TM : completeTask(taskId)
+
+TM -> Task : findTask(taskId)
+
+alt task exists
+    TM -> Task : complete()
+    Task -> Activity : createEntry("Task completed")
+    TM --> System : success
+    System --> User : confirmation
+
+else task not found
+    TM --> System : error("Task not found")
+    System --> User : error("Task not found")
+end
+
+
+newpage
+'title Sequence Diagram - Cancel Task
+
+actor User
+participant ":PTMS" as System
+participant "TaskManager" as TM
+participant "Task" as Task
+participant "ActivityEntry" as Activity
+
+User -> System : cancelTask(taskId)
+System -> TM : cancelTask(taskId)
+
+TM -> Task : findTask(taskId)
+
+alt task exists
+    TM -> Task : cancel()
+    Task -> Activity : createEntry("Task cancelled")
+    TM --> System : success
+    System --> User : confirmation
+
+else task not found
+    TM --> System : error("Task not found")
+    System --> User : error("Task not found")
+end
+
+@enduml
