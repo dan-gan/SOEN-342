@@ -165,11 +165,8 @@ class TaskManager {
   + createProject(name:String) : void
 }
 
-class CSVImporter {
+class CSVConnector{
   + importTasks(filePath:String) : List<Task>
-}
-
-class CSVExporter {
   + exportTasks(tasks:List<Task>, filePath:String) : void
 }
 
@@ -191,6 +188,5 @@ Subtask "0..*" --> "1" Collaborator : assignedTo
 
 
 TaskManager "1" -- "0..*" Task : tasks\n{ordered, List}
-TaskManager --> CSVImporter
-TaskManager --> CSVExporter
+TaskManager --> CSVConnector
 @enduml

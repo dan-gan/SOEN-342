@@ -1,20 +1,30 @@
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Task {
     private int id;
     private static int idCounter = 0; // Static counter to generate unique IDs for tasks
     private String title;
     private String description;
-    private LocalDateTime creationDate;
-    private LocalDateTime dueDate; 
+    private LocalDate creationDate;
+    private LocalDate dueDate; 
     private PriorityLevel priorityLevel;
     private Status status;
 
-    private Task(){
-        this.creationDate = LocalDateTime.now();
+    private List<Subtask> subtasks;
+    private List<Tag> tags;
+    private List<ActivityEntry> activityEntries;
+
+
+    private Task(){ //private default constructor, called by parametrized constructors
+        this.creationDate = LocalDate.now();
         this.id = ++idCounter; // Assign a unique ID to each task
         this.priorityLevel = PriorityLevel.LOW;
         this.status = Status.OPEN;
+        this.subtasks = new ArrayList<>();
+        this.tags = new ArrayList<>();
+        this.activityEntries = new ArrayList<>();
     }
 
     public Task(String title){ //title necessary to create a task
@@ -22,7 +32,7 @@ public class Task {
         this.title = title;
     }
 
-    public Task(String title, String desc, LocalDateTime dueDate){ //desc, dueDate optional
+    public Task(String title, String desc, LocalDate dueDate){ //desc, dueDate optional
         this();
         this.description = desc;
         this.dueDate = dueDate;
@@ -32,23 +42,28 @@ public class Task {
     public int getId() {return this.id;}
     public String getTitle() {return this.title;}
     public String getDescription() {return this.description;}
-    public LocalDateTime getCreationDate() {return this.creationDate;}
-    public LocalDateTime getDueDate() {return this.dueDate;}
+    public LocalDate getCreationDate() {return this.creationDate;}
+    public LocalDate getDueDate() {return this.dueDate;}
     public PriorityLevel getPriorityLevel() {return this.priorityLevel;}
     public Status getStatus() {return this.status;}
 
+    public List<Subtask> getSubtasks() {return this.subtasks;}
+    public List<Tag> getTags() {return this.tags;}
+    public List<ActivityEntry> getActivityEntries() {return this.activityEntries;}
+    
+
     //SETTERS
+    public void setId(int id) {this.id = id;};
     public void setTitle(String title) {this.title = title;}
     public void setDescription(String description) {this.description = description;}
-    public void setDueDate(LocalDateTime dueDate) {this.dueDate = dueDate;}
-
-    public void setHighPriority() {this.priorityLevel = PriorityLevel.HIGH;}
-    public void setMediumPriority() {this.priorityLevel = PriorityLevel.MEDIUM;}
-    public void setLowPriority() {this.priorityLevel = PriorityLevel.LOW;}
-
-    public void completeTask() {this.status = Status.COMPLETED;}
-    public void closeTask(){this.status = Status.CLOSED;}
-    public void reopenTask(){this.status = Status.OPEN;}
+    public void setCreationDate(LocalDate creationDatet) {this.creationDate = creationDatet;}
+    public void setDueDate(LocalDate dueDate) {this.dueDate = dueDate;}
+    public void setPriority(PriorityLevel pl) {this.priorityLevel = pl;}
+    public void setStatus(Status status) {this.status = status;}
+   
+    public void setSubtasks(List<Subtask> subtasks) {this.subtasks = subtasks;}
+    public void setTags(List<Tag> tags) {this.tags = tags;}
+    public void setActivityEntry(List<ActivityEntry> activityEntries) {this.activityEntries = activityEntries;}
 
     //equals
     @Override
@@ -59,14 +74,14 @@ public class Task {
             return false;
 
         Task t = (Task) o;
-        return (this.id == t.id && this.title.equals(t.title))            
+        return (this.title.equals(t.title) || this.id == t.id);            
     }
 
     //toString
     @Override
     public String toString(){
         return "Task ID: " + this.id + "\nStatus: " + this.status + "\nPriority: " + this.priorityLevel 
-        + "\nTask Title: " + this.title + "\nDescription" + this.description
+        + "\nTask Title: " + this.title + "\nDescription: " + this.description
         + "\ncreationDate: " + this.creationDate + "\ndueDate: " + this.dueDate; 
     }
     

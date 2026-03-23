@@ -1,7 +1,7 @@
 public class Subtask{
     private int id;
     private String title;
-    private TaskStatus status;
+    private Status status;
 
     public int getId() {
         return id;
@@ -19,11 +19,11 @@ public class Subtask{
         this.title = title;
     }
 
-    public TaskStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

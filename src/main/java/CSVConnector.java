@@ -17,7 +17,7 @@ public class CSVConnector{
             BufferedWriter writer = new BufferedWriter(fWriter);
             for(Task task: tasks){
                 String entry = task.getId() + ",&ID," + task.getTitle()+ ",&TITLE,"+task.getDescription()+",&DESCRIPTION,"+task.getCreationDate()+",&CREATIONDATE,"
-                +task.getDueDate()+",&DUEDATE,"+task.getPriorityLevel()+",&PRIORITYLEVEL,"+task.getTaskStatus()
+                +task.getDueDate()+",&DUEDATE,"+task.getPriorityLevel()+",&PRIORITYLEVEL,"+task.getStatus()
                 +",&STATUS,";
                 for(Subtask subtask: task.getSubtasks()){
                     entry = entry + subtask.getTitle() + ",&SUBTITLE,"+subtask.getId() + ",&SUBID,"+ subtask.getStatus() + ",&SUBSTATUS,";
@@ -25,7 +25,7 @@ public class CSVConnector{
                 for(Tag tag: task.getTags()){
                     entry = entry + tag.getName() + ",&TAGNAME,"+tag.getId()+",&TAGID,";
                 }
-                for(ActivityEntry activityEntry: task.getActivityEntry()){
+                for(ActivityEntry activityEntry: task.getActivityEntries()){
                     entry = entry + activityEntry.getDescription()+ ",&ACTDESCRIPTION,"+activityEntry.getTimestamp()+",&ACTTIMESTAMP,";
                 }
                 entry+="&TASK,";
@@ -98,10 +98,10 @@ public class CSVConnector{
                             task.setDueDate(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(value));
                             break;
                         case "&PRIORITYLEVEL":
-                            task.setPriorityLevel(PriorityLevel.valueOf(value));
+                            task.setPriority(PriorityLevel.valueOf(value));
                             break;
                         case "&STATUS":
-                            task.setTaskStatus(TaskStatus.valueOf(value));
+                            task.setStatus(Status.valueOf(value));
                             break;
 
                         case "&SUBTITLE":
