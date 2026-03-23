@@ -1,14 +1,19 @@
 @startuml
 'title Sequence Diagram - Create Task
 
+@startuml
 actor User
 participant ":PTMS" as System
 participant "TaskManager" as TM
 participant "Task" as Task
+participant "ActivityEntry" as Activity
 
 User -> System : createTask(title)
 System -> TM : createTask(...)
 TM -> Task : new Task(...)
+
+TM -> Activity : createEntry("Task created")
+
 TM --> System : taskCreated
 System --> User : confirmation
 
