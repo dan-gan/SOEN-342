@@ -1,0 +1,57 @@
+@startuml
+'title SSD - Assign Collaborator to Task
+
+actor User
+participant ":PTMS" as System
+
+User -> System : assignCollaborator(taskId, collaboratorId)
+
+alt task and collaborator exist
+  System --> User : collaboratorAssigned()
+
+else task not found
+  System --> User : error("Task not found")
+
+else collaborator not found
+  System --> User : error("Collaborator not found")
+end
+
+
+newpage
+'title SSD - Import Tasks from CSV
+
+actor User
+participant ":PTMS" as System
+
+User -> System : importTasksFromCSV(filePath)
+
+alt file valid and parsed successfully
+  System --> User : tasksImported(taskList)
+
+else file not found
+  System --> User : error("File not found")
+
+else invalid file format
+  System --> User : error("Invalid CSV format")
+end
+
+
+newpage
+'title SSD - Export Tasks to CSV
+
+actor User
+participant ":PTMS" as System
+
+User -> System : exportTasksToCSV(tasks, filePath)
+
+alt export successful
+  System --> User : exportCompleted()
+
+else invalid path
+  System --> User : error("Invalid file path")
+
+else system error
+  System --> User : error("Export failed")
+end
+
+@enduml
