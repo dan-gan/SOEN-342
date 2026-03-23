@@ -3,6 +3,7 @@ left to right direction
 actor "Single User" as fc
 
 rectangle "Personal Task Management System" {
+
   package "Critical Use Case" {
     usecase "Create Task" as UC1
     usecase "Update Task" as UCU
@@ -10,8 +11,17 @@ rectangle "Personal Task Management System" {
     usecase "Complete Task" as UC9
     usecase "Cancel Task" as UC10
   }
+  
+  package "Task Update Options" {
+   usecase "Update Title" as u1
+    usecase "Update Description" as u2
+    usecase "Update Priority" as u3
+    usecase "Update Due Date" as u4
+    usecase "Update Associated Project" as u6
+    usecase "Update Tags" as u7
+}
 
-  package "Non-Critical Use Case" {
+  package "Additional Use Cases" {
     usecase "Create Project" as UC8
     usecase "Assign Task to Project" as UC2
     usecase "Add Subtask" as UC3
@@ -26,20 +36,17 @@ rectangle "Personal Task Management System" {
     usecase "Import Tasks from CSV" as UC15
     usecase "Export Tasks to CSV" as UC16
 
-    usecase "Update Title" as u1
-    usecase "Update Description" as u2
-    usecase "Update Priority" as u3
-    usecase "Update Due Date" as u4
-    usecase "Update Associated Project" as u6
-    usecase "Update Tags" as u7
-
-    usecase "List by Due Date (Specific/Range)" as v1
+  }
+  
+    package "Task View / Search Options" {
+  usecase "List by Due Date (Specific/Range)" as v1
     usecase "List by Priority" as v2
     usecase "List by Status" as v3
     usecase "List by Project" as v4
     usecase "List by Tag" as v5
     usecase "Search by keyword (Title/Description)" as v6
-  }
+}
+
 }
 
 UC1 <.. UC11 : <<extend>>
