@@ -14,7 +14,7 @@ public class TaskManager {
         
         Scanner kb = new Scanner(System.in);     
 
-        System.out.println("\n\nWelcome to your Personal Task Management System!");
+        System.out.println("\nWelcome to your Personal Task Management System!");
 
         int input = -1;
         while(input != 0){

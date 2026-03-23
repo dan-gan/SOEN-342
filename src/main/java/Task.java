@@ -6,11 +6,13 @@ public class Task {
     private int id;
     private static int idCounter = 0; // Static counter to generate unique IDs for tasks
     private String title;
-    private String description;
+    private String description;       //optional
     private LocalDate creationDate;
     private LocalDate dueDate; 
     private PriorityLevel priorityLevel;
     private Status status;
+
+    private Project project;
 
     private List<Subtask> subtasks;
     private List<Tag> tags;
@@ -19,7 +21,7 @@ public class Task {
 
     private Task(){ //private default constructor, called by parametrized constructors
         this.creationDate = LocalDate.now();
-        this.id = ++idCounter; // Assign a unique ID to each task
+        this.id = ++idCounter; 
         this.priorityLevel = PriorityLevel.LOW;
         this.status = Status.OPEN;
         this.subtasks = new ArrayList<>();
@@ -32,12 +34,6 @@ public class Task {
         this.title = title;
     }
 
-    public Task(String title, String desc, LocalDate dueDate){ //desc, dueDate optional
-        this();
-        this.description = desc;
-        this.dueDate = dueDate;
-    }
-
     //GETTERS
     public int getId() {return this.id;}
     public String getTitle() {return this.title;}
@@ -46,6 +42,7 @@ public class Task {
     public LocalDate getDueDate() {return this.dueDate;}
     public PriorityLevel getPriorityLevel() {return this.priorityLevel;}
     public Status getStatus() {return this.status;}
+    public Project getProject() {return this.project;}
 
     public List<Subtask> getSubtasks() {return this.subtasks;}
     public List<Tag> getTags() {return this.tags;}
@@ -53,17 +50,34 @@ public class Task {
     
 
     //SETTERS
-    public void setId(int id) {this.id = id;};
     public void setTitle(String title) {this.title = title;}
     public void setDescription(String description) {this.description = description;}
     public void setCreationDate(LocalDate creationDatet) {this.creationDate = creationDatet;}
     public void setDueDate(LocalDate dueDate) {this.dueDate = dueDate;}
     public void setPriority(PriorityLevel pl) {this.priorityLevel = pl;}
     public void setStatus(Status status) {this.status = status;}
-   
-    public void setSubtasks(List<Subtask> subtasks) {this.subtasks = subtasks;}
-    public void setTags(List<Tag> tags) {this.tags = tags;}
-    public void setActivityEntry(List<ActivityEntry> activityEntries) {this.activityEntries = activityEntries;}
+    public void setProject(Project p){this.project = p;}
+
+    public void addSubtask(Subtask subtask){
+        this.subtasks.add(subtask);
+    }
+    public void removeSubtask(Subtask subtask){
+        this.subtasks.remove(subtask);
+    }
+
+    public void addTag(Tag tag){
+        this.tags.add(tag);
+    }
+    public void removeTag(Tag tag){
+        this.tags.remove(tag);
+    }
+
+    public void addActivityEntry(ActivityEntry ae){
+        this.activityEntries.add(ae);
+    }
+    public void removeActivityEntry(ActivityEntry ae){
+        this.activityEntries.remove(ae);
+    }
 
     //equals
     @Override
@@ -74,7 +88,7 @@ public class Task {
             return false;
 
         Task t = (Task) o;
-        return (this.title.equals(t.title) || this.id == t.id);            
+        return (this.id == t.id);            
     }
 
     //toString
