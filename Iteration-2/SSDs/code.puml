@@ -42,7 +42,7 @@ newpage
 actor User
 participant ":PTMS" as System
 
-User -> System : exportTasksToCSV(filePath)
+User -> System : exportTasksToCSV(tasks, filePath)
 
 alt export successful
   System --> User : exportCompleted()
