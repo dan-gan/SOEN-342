@@ -19,18 +19,19 @@ public class Task {
     private List<ActivityEntry> activityEntries;
 
 
-    private Task(){ //private default constructor, called by parametrized constructors
+    public Task(){             //USED ONLY IN CSV IMPORT 
         this.creationDate = LocalDate.now();
-        this.id = ++idCounter; 
         this.priorityLevel = PriorityLevel.LOW;
         this.status = Status.OPEN;
+
         this.subtasks = new ArrayList<>();
         this.tags = new ArrayList<>();
         this.activityEntries = new ArrayList<>();
     }
 
-    public Task(String title){ //title necessary to create a task
+    public Task(String title){ //ONLY for user (title necessary to create a task)
         this();
+        this.id = ++idCounter; 
         this.title = title;
     }
 
@@ -50,6 +51,7 @@ public class Task {
     
 
     //SETTERS
+    void setId(int id){this.id = id;} //ONLY for CSVConnector
     public void setTitle(String title) {this.title = title;}
     public void setDescription(String description) {this.description = description;}
     public void setCreationDate(LocalDate creationDatet) {this.creationDate = creationDatet;}

@@ -1,15 +1,26 @@
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class ActivityEntry {
-    private Date timestamp;
     private String description;
+    private LocalDateTime timestamp;
 
-    public Date getTimestamp() {
+    public ActivityEntry(){
+
+    }
+
+    public ActivityEntry(String desc, LocalDateTime timestamp){
+        this();
+        this.timestamp = timestamp;
+        this.description = desc;
+    }
+
+    //SETTERS / GETTERS
+    public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Date timestamp) {
+    public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
 

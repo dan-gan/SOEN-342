@@ -1,8 +1,21 @@
 public class Subtask{
     private int id;
+    private static int idCounter = 0;
     private String title;
     private Status status;
 
+    public Subtask(){
+
+    }
+
+    public Subtask(String title, Status status){
+        this();
+        this.id = ++idCounter;
+        this.title = title;
+        this.status = status;
+    }
+
+    //SETTERS / GETTERS
     public int getId() {
         return id;
     }
