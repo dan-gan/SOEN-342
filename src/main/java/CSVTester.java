@@ -100,7 +100,8 @@ public class CSVTester {
         CSVConnector.importTasks("tasks.csv");
 
         // Verify imported tasks
-        Database.getTasks().forEach(task -> System.out.println(task.getTitle() + " | Project: " + (task.getProject() != null ? task.getProject().getTitle() : "None")));    
+        System.out.println(Database.getTasks());
+        
         
     }
 }

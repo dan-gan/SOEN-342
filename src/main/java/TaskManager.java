@@ -11,8 +11,10 @@ public class TaskManager {
         
         // Sample data for testing
         CSVTester.CSVTest();
-        Database.setTasks(tasks);
-        CSVConnector.exportTasks("tasks.csv");
+
+        // Import tasks from CSV 
+        CSVConnector.importTasks("tasks.csv");
+        tasks = Database.getTasks();
 
         Scanner kb = new Scanner(System.in);     
 
