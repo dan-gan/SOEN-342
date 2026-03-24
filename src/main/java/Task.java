@@ -108,10 +108,11 @@ public class Task {
         + "\nDescription: " + this.description
         + "\ncreationDate: " + this.creationDate 
         + "\ndueDate: " + this.dueDate
-        + "\nProject: " + this.project.toString()
-        + "\nSubtasks: " + this.subtasks.toString()
-        + "\nTags: " + this.tags.toString()
-        + "\nActivity Entries: " + this.activityEntries.toString();
+        // + "\nProject: " + this.project.toString()
+        // + "\nSubtasks: " + this.subtasks.toString()
+        // + "\nTags: " + this.tags.toString()
+        // + "\nActivity Entries: " + this.activityEntries.toString()
+        + "\n-----------------------------";
     }
     
     

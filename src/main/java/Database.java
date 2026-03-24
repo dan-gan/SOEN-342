@@ -12,6 +12,7 @@ public class Database {
 
     public static List<Task> getTasks() { return tasks; }
     public static void addTask(Task task) { tasks.add(task); }
+    public static void setTasks(List<Task> newTasks) { tasks = newTasks; }
 
     public static void reset() {
         projects.clear();

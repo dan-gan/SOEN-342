@@ -75,10 +75,11 @@ public class Project {
 
     @Override
     public String toString(){
-        String result = "Project Title: " + this.title + "\nDescription: " + this.description + "\n";
-        for(Task t : tasks){
-            result += t + "\n";
-        }
+        String result = "";
+        if(this != null)
+            result += "Project Title: " + this.title;
+        if(this.description != null)
+            result += "\tDescription: " + this.description;
         return result;
     }
 }
