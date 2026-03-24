@@ -1,162 +1,129 @@
 
 import java.io.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class CSVConnector{
+public class CSVConnector {
 
-    private static final String FILE_NAME = "TaskCSV.csv";
+    public static void exportTasks(String filePath) {
+        try (FileWriter writer = new FileWriter(filePath)) {
+            // Write header
+            writer.append("TaskName,Description,Subtask,Status,Priority,DueDate,ProjectName,ProjectDescription,Collaborator,CollaboratorCategory\n");
 
-    public static boolean exportTasks(List<Task> tasks, String filePath){
-        File f = new File(filePath, FILE_NAME);
+            for (Task task : Database.getTasks()) {
+                String subtasks = task.getSubtasks().stream()
+                        .map(Subtask::getTitle)
+                        .collect(Collectors.joining(";"));
+                String collaborators = task.getProject() != null
+                        ? task.getProject().getCollaborators().stream()
+                            .map(c -> c.getName() + ":" + c.getCategory())
+                            .collect(Collectors.joining(";"))
+                        : "";
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(f))){;
-            for(Task task: tasks){                
-                String entry = task.getId() + ",&ID," + task.getTitle()+ ",&TITLE,"+task.getDescription()+",&DESCRIPTION,"+task.getCreationDate()+",&CREATIONDATE,"
-                +task.getDueDate()+",&DUEDATE,"+task.getPriorityLevel()+",&PRIORITYLEVEL,"+task.getStatus()
-                +",&STATUS,";
-                for(Subtask subtask: task.getSubtasks()){
-                    entry = entry + subtask.getTitle() + ",&SUBTITLE,"+subtask.getId() + ",&SUBID,"+ subtask.getStatus() + ",&SUBSTATUS,";
-                }
-                for(Tag tag: task.getTags()){
-                    entry = entry + tag.getName() + ",&TAGNAME,"+tag.getId()+",&TAGID,";
-                }
-                for(ActivityEntry activityEntry: task.getActivityEntries()){
-                    entry = entry + activityEntry.getDescription()+ ",&ACTDESCRIPTION,"+activityEntry.getTimestamp()+",&ACTTIMESTAMP,";
-                }
-                entry+="&TASK,";
-                writer.write(entry);
+                // Prepare task line
+                String[] line = {
+                        escapeCSV(task.getTitle()),
+                        escapeCSV(task.getDescription() != null ? task.getDescription() : ""),
+                        escapeCSV(subtasks),
+                        task.getStatus().toString(),  
+                        task.getPriorityLevel().toString(),
+                        task.getDueDate() != null ? task.getDueDate().toString() : "",
+                        task.getProject() != null ? escapeCSV(task.getProject().getTitle()) : "",
+                        task.getProject() != null ? escapeCSV(task.getProject().getDescription()) : "",
+                        escapeCSV(collaborators)
+                };
+
+                // Write to CSV file
+                writer.append(String.join(",", line)).append("\n");
             }
-            writer.close();
+
+            System.out.println("Exported to CSV successfully: " + filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch (IOException e){
-            System.out.println(e.getMessage());
-            return false;
-        }
-        return true;
     }
 
-    public static List<Task> importTasks(String filePath){
-        List<Task> tasks = new ArrayList<>();
-        File file = new File(filePath+"/TaskCSV.csv");
-        String line;
+    // Method to escape CSV commas and quotes
+    private static String escapeCSV(String value) {
+        if (value == null) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            value = value.replace("\"", "\"\"");
+            return "\"" + value + "\"";
+        }
+        return value;
+    }
 
-        if(!file.exists()) return tasks;
 
-        try{
-            BufferedReader reader = new BufferedReader(new FileReader(file));
+    public static void importTasks(String filePath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            reader.readLine(); // Skip header line
 
             while ((line = reader.readLine()) != null) {
-                String[] tokens = line.split(",");
+                String[] values = parseCSVLine(line);
 
-                Task task = new Task();
+                Task task = new Task(values[0]);
+                task.setDescription(values[1]);
+                task.setStatus(Status.valueOf(values[3].trim()));  // Trim any extra spaces or escape codes
+                task.setPriorityLevel(PriorityLevel.valueOf(values[4].trim()));
+                if (!values[5].isEmpty()) task.setDueDate(LocalDate.parse(values[5]));
 
-                List<Subtask> subtasks = new ArrayList<>();
-                List<Tag> tags = new ArrayList<>();
-                List<ActivityEntry> activities = new ArrayList<>();
-
-                Subtask currentSubtask = null;
-                Tag currentTag = null;
-                ActivityEntry currentActivity = null;
-
-                for (int i = 0; i < tokens.length; i++) {
-
-                    if(tokens[i].equalsIgnoreCase("&TASK")){
-                        task.setSubtasks(subtasks);
-                        task.setTags(tags);
-                        task.setActivityEntry(activities);
-                        tasks.add(task);
-
-                        subtasks.clear();
-                        tags.clear();
-                        activities.clear();
-                        task = new Task();
-                        continue;
+                // Project handling
+                Project project = null;
+                if (!values[6].isEmpty()) {
+                    project = Database.getProjectByName(values[6]);
+                    if (project == null) {
+                        project = new Project(values[6], values[7]);
+                        Database.addProject(project);
                     }
+                    task.setProject(project);
 
-                    String value = tokens[i];
-                    String marker = tokens[i + 1];
-
-                    switch (marker) {
-                        case "&ID":
-                            task.setId(Integer.parseInt(value));
-                            break;
-                        case "&TITLE":
-                            task.setTitle(value);
-                            break;
-                        case "&DESCRIPTION":
-                            task.setDescription(value);
-                            break;
-                        case "&CREATIONDATE":
-                            task.setCreationDate(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(value));
-                            break;
-                        case "&DUEDATE":
-                            task.setDueDate(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(value));
-                            break;
-                        case "&PRIORITYLEVEL":
-                            task.setPriority(PriorityLevel.valueOf(value));
-                            break;
-                        case "&STATUS":
-                            task.setStatus(Status.valueOf(value));
-                            break;
-
-                        case "&SUBTITLE":
-                            currentSubtask = new Subtask();
-                            currentSubtask.setTitle(value);
-                            break;
-                        case "&SUBID":
-                            if (currentSubtask != null) {
-                                currentSubtask.setId(Integer.parseInt(value));
+                    // Collaborators
+                    if (!values[8].isEmpty()) {
+                        String[] collabs = values[8].split(";");
+                        for (String c : collabs) {
+                            String[] parts = c.split(":");
+                            Collaborator col = project.getCollaboratorByName(parts[0]);
+                            if (col == null) {
+                                col = new Collaborator(parts[0], CollaboratorCategory.valueOf(parts[1]));
+                                project.addCollaborator(col);
                             }
-                            break;
-                        case "&SUBSTATUS":
-                            if (currentSubtask != null) {
-                                currentSubtask.setStatus(TaskStatus.valueOf(value));
-                                subtasks.add(currentSubtask);
-                                currentSubtask = null;
-                            }
-                            break;
-
-                        case "&TAGNAME":
-                            currentTag = new Tag();
-                            currentTag.setName(value);
-                            break;
-                        case "&TAGID":
-                            if (currentTag != null) {
-                                currentTag.setId(Integer.parseInt(value));
-                                tags.add(currentTag);
-                                currentTag = null;
-                            }
-                            break;
-
-                        case "&ACTDESCRIPTION":
-                            currentActivity = new ActivityEntry();
-                            currentActivity.setDescription(value);
-                            break;
-                        case "&ACTTIMESTAMP":
-                            if (currentActivity != null) {
-                                currentActivity.setTimestamp(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy").parse(value));
-                                activities.add(currentActivity);
-                                currentActivity = null;
-                            }
-                            break;
-                        default:
-                            break;
+                        }
                     }
                 }
+
+                // Subtasks
+                if (!values[2].isEmpty()) {
+                    String[] subtasks = values[2].split(";");
+                    for (String s : subtasks) task.addSubtask(new Subtask(s));
+                }
+
+                Database.addTask(task);
             }
 
-            reader.close();
+            System.out.println("Imported tasks from CSV successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch (IOException e){
-            System.out.println("I/O Exception");
-        } catch (ParseException e) {
-            System.out.println("Couldn't parse a date");
-        }
+    }
 
-        return tasks;
+    // Simple CSV line parsing (handling quoted fields)
+    private static String[] parseCSVLine(String line) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (char c : line.toCharArray()) {
+            if (c == '"') inQuotes = !inQuotes;
+            else if (c == ',' && !inQuotes) {
+                tokens.add(sb.toString());
+                sb.setLength(0);
+            } else sb.append(c);
+        }
+        tokens.add(sb.toString());
+        return tokens.toArray(new String[0]);
     }
 
 }

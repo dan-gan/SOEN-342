@@ -12,8 +12,10 @@ public class Collaborator {
     }
 
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public CollaboratorCategory getCategory() { return category; }
-
+    public void setCategory(CollaboratorCategory category) { this.category = category; }
+    
     public List<Task> getTasks() { return tasks; }
     public void addTask(Task task) { tasks.add(task); }
 }

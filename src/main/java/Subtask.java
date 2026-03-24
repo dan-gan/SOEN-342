@@ -5,14 +5,13 @@ public class Subtask{
     private Status status;
 
     public Subtask(){
-
+        this.status = Status.OPEN;
     }
 
-    public Subtask(String title, Status status){
+    public Subtask(String title){
         this();
         this.id = ++idCounter;
         this.title = title;
-        this.status = status;
     }
 
     //SETTERS / GETTERS

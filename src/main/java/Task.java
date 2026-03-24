@@ -56,7 +56,7 @@ public class Task {
     public void setDescription(String description) {this.description = description;}
     public void setCreationDate(LocalDate creationDatet) {this.creationDate = creationDatet;}
     public void setDueDate(LocalDate dueDate) {this.dueDate = dueDate;}
-    public void setPriority(PriorityLevel pl) {this.priorityLevel = pl;}
+    public void setPriorityLevel(PriorityLevel pl) {this.priorityLevel = pl;}
     public void setStatus(Status status) {this.status = status;}
     public void setProject(Project p){this.project = p;}
 
@@ -101,9 +101,17 @@ public class Task {
     //toString
     @Override
     public String toString(){
-        return "\nTask ID: " + this.id + "\nStatus: " + this.status + "\nPriority: " + this.priorityLevel 
-        + "\nTask Title: " + this.title + "\nDescription: " + this.description
-        + "\ncreationDate: " + this.creationDate + "\ndueDate: " + this.dueDate; 
+        return "\nTask ID: " + this.id 
+        + "\nTask Title: " + this.title 
+        + "\nStatus: " + this.status.colored() 
+        + "\nPriority: " + this.priorityLevel.colored() 
+        + "\nDescription: " + this.description
+        + "\ncreationDate: " + this.creationDate 
+        + "\ndueDate: " + this.dueDate
+        + "\nProject: " + this.project.toString()
+        + "\nSubtasks: " + this.subtasks.toString()
+        + "\nTags: " + this.tags.toString()
+        + "\nActivity Entries: " + this.activityEntries.toString();
     }
     
     

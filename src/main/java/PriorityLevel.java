@@ -9,9 +9,4 @@ public enum PriorityLevel {
             default: return this.name();
         }
     }
-
-    @Override
-    public String toString() {
-        return colored();  // now println() automatically prints color
-    }
 }

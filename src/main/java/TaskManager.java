@@ -1,16 +1,17 @@
 import java.util.List;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class TaskManager {
-
-
+    
     private static List<Task> tasks = new ArrayList<>();
 
     public static void main(String[] args) {
         
+        CSVTester.CSVTest();
+
+
         Scanner kb = new Scanner(System.in);     
 
         System.out.println("\nWelcome to your Personal Task Management System!");
@@ -20,12 +21,8 @@ public class TaskManager {
             System.out.println("\nChoose an option: ");
             System.out.println("\t1. Create a Task");
             System.out.println("\t2. Search Tasks");
-            // System.out.println("\t3. Update a Task");
-            // System.out.println("\t4. Complete a Task");
-            // System.out.println("\t5. Cancel a Task");
             System.out.println("\t3. Export Tasks to CSV");
             System.out.println("\t4. Import Tasks from CSV");
-            // System.out.println("\t8. Create a Project");
             System.out.println("\t0. Exit");
             input = kb.nextInt();
             kb.nextLine();
