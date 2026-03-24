@@ -79,7 +79,7 @@ public class Project {
         if(this != null)
             result += "Project Title: " + this.title;
         if(this.description != null)
-            result += "\tDescription: " + this.description;
+            result += "\nProject Description: " + this.description;
         return result;
     }
 }

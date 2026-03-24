@@ -38,7 +38,7 @@ public class TaskManager {
                     break;
                 case 2:
                     int input2 = -1;
-                    while(input2 != 8){
+                    while(input2 != 9){
                         input = -1;
                         showSearchMenu();
                         input2 = getUserChoice(kb);
@@ -111,11 +111,16 @@ public class TaskManager {
                                 SearchTasks.searchTasksProject(tasks, project, kb);
                                 break;
                             case 7:
+                                System.out.println("Enter day of week (e.g. MONDAY): ");
+                                String dayOfWeek = kb.nextLine();
+                                SearchTasks.searchTasksByDayOfWeek(tasks, dayOfWeek, kb);
+                                break;
+                            case 8:
                                 System.out.println("Enter tag name: ");
                                 String tag = kb.nextLine();
                                 SearchTasks.searchTasksTag(tasks, tag, kb);
                                 break;
-                            case 8:
+                            case 9:
                                 break;
                         }
                     }                    
@@ -157,8 +162,9 @@ public class TaskManager {
         System.out.println("\t4. List by Priority");
         System.out.println("\t5. List by Status");
         System.out.println("\t6. List by Project");
-        System.out.println("\t7. List by Tag");
-        System.out.println("\t8. Exit");
+        System.out.println("\t7. List by Day of Week");
+        System.out.println("\t8. List by Tag");
+        System.out.println("\t9. Exit");
     }
     public static int getUserChoice(Scanner kb) {
         while (true) {

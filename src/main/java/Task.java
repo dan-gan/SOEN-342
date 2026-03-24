@@ -105,13 +105,13 @@ public class Task {
         + "\nTask Title: " + this.title 
         + "\nStatus: " + this.status.colored() 
         + "\nPriority: " + this.priorityLevel.colored() 
-        + "\nDescription: " + this.description
-        + "\ncreationDate: " + this.creationDate 
-        + "\ndueDate: " + this.dueDate
-        // + "\nProject: " + this.project.toString()
+        + "\nDescription: " + this.description 
+        + "\ncreationDate: " + this.creationDate + " " + this.creationDate.getDayOfWeek() 
+        + "\ndueDate: " + this.dueDate + " " + (this.dueDate != null ? this.dueDate.getDayOfWeek() : "")
+        + (this.project != null ? "\nProject: " + this.project.toString() : "")
         // + "\nSubtasks: " + this.subtasks.toString()
         // + "\nTags: " + this.tags.toString()
-        // + "\nActivity Entries: " + this.activityEntries.toString()
+        // + "\nActivity Entries: " + this.activityEntries.toString() 
         + "\n-----------------------------";
     }
     

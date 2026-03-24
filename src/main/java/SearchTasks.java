@@ -123,6 +123,17 @@ public class SearchTasks {
         return results;
     }
 
+    public static void searchTasksByDayOfWeek(List<Task> tasks, String dayOfWeek, Scanner kb){
+        List<Task> results = new ArrayList<>();
+        for(Task t : tasks){
+            if(t.getDueDate() != null && t.getDueDate().getDayOfWeek().toString().equalsIgnoreCase(dayOfWeek)){
+                results.add(t);
+            }
+        }
+        System.out.println(results);
+        promptExportCSV(results, kb);
+    }
+
     public static void promptExportCSV(List<Task> tasks, Scanner kb){
         System.out.println("Would you like to export tasks to CSV? (1 for yes, 0 for no)");
         int response = TaskManager.getUserChoice(kb);
