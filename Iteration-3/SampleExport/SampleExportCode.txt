@@ -1,0 +1,45 @@
+@startuml
+title iCal Export - Sample Sequence (Export Tasks by Project)
+
+actor User
+
+participant "ExportController\n(Presentation Layer)" as Controller
+participant "TaskService\n(Domain Layer)" as Service
+participant "TaskRepository" as Repo
+participant "ICalGateway\n(Interface)" as Gateway
+participant "ICalGatewayImpl\n(iCal4j)" as GatewayImpl
+
+User -> Controller : exportTasks(projectId)
+
+Controller -> Service : getTasksByProject(projectId)
+
+Service -> Repo : findByProject(projectId)
+Repo --> Service : List<Task>
+
+note right of Service
+Only tasks with due date are eligible
+Tasks without due date are ignored
+end note
+
+Service -> Service : filterTasksWithDueDate(tasks)
+
+loop for each eligible Task
+    Service -> Service : getTaskDetails()
+    Service -> Service : getSubtasksSummary()
+end
+
+Service -> Gateway : exportToICal(taskList)
+
+Gateway -> GatewayImpl : createCalendar()
+
+loop for each Task
+    GatewayImpl -> GatewayImpl : createEvent(task)
+end
+
+GatewayImpl --> Service : .ics file
+
+Service --> Controller : .ics file
+
+Controller --> User : Export successful / file saved
+
+@enduml
