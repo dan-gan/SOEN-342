@@ -1,0 +1,232 @@
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+
+' =========================
+' ENUMS
+' =========================
+
+enum TaskStatus {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CollaboratorCategory {
+  JUNIOR
+  INTERMEDIATE
+  SENIOR
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+' =========================
+' ENTITY CLASSES
+' =========================
+
+class Task {
+  - id : int
+  - title : String
+  - description : String[0..1]
+  - creationDate : Date
+  - dueDate : Date[0..1]
+  - priorityLevel : PriorityLevel
+  - status : TaskStatus
+
+  + complete() : void
+  + cancel() : void
+  + isOpen() : Boolean
+  + updateTitle(title:String) : void
+  + updateDescription(desc:String) : void
+  + updatePriority(priority:PriorityLevel) : void
+  + updateDueDate(date:Date) : void
+  + createSubtask(title:String) : Subtask
+}
+
+note left of Task
+OCL 1:
+context Task
+inv MaxSubtasks:
+  self.subtasks->size() <= 20
+end note
+
+note right of Task
+OCL 2:
+context Task
+inv OpenTasksWithoutDueDateLimit:
+  Task.allInstances()
+    ->select(t | t.status = TaskStatus::OPEN and t.dueDate.oclIsUndefined())
+    ->size() <= 50
+end note
+
+note bottom of Task
+Constraint:
+(title, dueDate) must be unique
+end note
+
+class Project {
+  - id : int
+  - name : String
+  - description : String[0..1]
+
+  + addTask(task:Task) : void
+  + removeTask(task:Task) : void
+}
+
+class Subtask {
+  - id : int
+  - title : String
+  - status : TaskStatus
+
+  + complete() : void
+}
+
+class Tag {
+  - id : int
+  - name : String
+}
+
+class ActivityEntry {
+  - timestamp : Date
+  - description : String
+}
+
+' =========================
+' COLLABORATORS
+' =========================
+
+class Collaborator {
+  - name : String
+  - category : CollaboratorCategory
+
+  + assignSubtask(subtask:Subtask) : void
+  + getOpenTasksCount() : int
+  + getLimit() : int
+  + isOverloaded() : Boolean
+}
+
+note right of Collaborator
+OCL 4:
+context Collaborator
+inv NotOverloaded:
+  self.getOpenTasksCount() <= self.getLimit()
+end note
+
+note bottom of Collaborator
+Limits:
+JUNIOR = 10
+INTERMEDIATE = 5
+SENIOR = 2
+end note
+
+' =========================
+' CATEGORY (for OCL clarity)
+' =========================
+
+class CategoryLimit {
+  - category : CollaboratorCategory
+  - limit : int
+}
+
+note right of CategoryLimit
+OCL 3:
+context CategoryLimit
+inv PositiveLimit:
+  self.limit > 0
+end note
+
+' =========================
+' RECURRENCE
+' =========================
+
+abstract class Recurrence {
+  - startDate : Date
+  - endDate : Date
+  - interval : int
+}
+
+class DailyRecurrence
+class WeeklyRecurrence {
+  - daysOfWeek : Set<DayOfWeek>
+}
+class MonthlyRecurrence {
+  - dayOfMonth : int
+}
+
+Recurrence <|-- DailyRecurrence
+Recurrence <|-- WeeklyRecurrence
+Recurrence <|-- MonthlyRecurrence
+
+' =========================
+' SERVICES
+' =========================
+
+class TaskManager {
+  + createTask(title:String) : Task
+  + updateTask(task:Task) : void
+  + completeTask(task:Task) : void
+  + cancelTask(task:Task) : void
+  + searchTasks(criteria:String) : List<Task>
+  + createProject(name:String) : Project
+}
+
+class ExportService {
+  + exportTasks(tasks:List<Task>) : File
+}
+
+class CSVConnector {
+  + importTasks(filePath:String) : List<Task>
+  + exportTasks(tasks:List<Task>, filePath:String) : void
+}
+
+' =========================
+' GATEWAY (ITERATION III)
+' =========================
+
+interface ICalGateway {
+  + exportToICal(tasks:List<Task>) : File
+}
+
+class ICalGatewayImpl {
+  + exportToICal(tasks:List<Task>) : File
+}
+
+ICalGateway <|.. ICalGatewayImpl
+ExportService --> ICalGateway
+
+' =========================
+' ASSOCIATIONS
+' =========================
+
+Project "1" -- "0..*" Task : contains
+Task "1" *-- "0..*" Subtask
+Task "1" *-- "0..*" ActivityEntry
+Task "0..*" -- "0..*" Tag
+
+Project "1" -- "0..*" Collaborator
+
+Subtask "0..*" --> "1" Collaborator : assignedTo
+
+Task "0..*" --> "0..1" Recurrence
+
+TaskManager --> Task
+TaskManager --> Project
+TaskManager --> CSVConnector
+
+ExportService --> Task
+
+@enduml
