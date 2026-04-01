@@ -19,9 +19,11 @@ enum PriorityLevel {
 }
 
 enum CollaboratorCategory {
-  JUNIOR
-  INTERMEDIATE
-  SENIOR
+  JUNIOR=10
+  INTERMEDIATE=5
+  SENIOR=2
+  
+  + setLimit(newLimit: int) : void
 }
 
 enum DayOfWeek {
@@ -32,6 +34,26 @@ enum DayOfWeek {
   FRIDAY
   SATURDAY
   SUNDAY
+}
+
+' =========================
+' CATALOGUES
+' =========================
+
+class TaskCatalogue {
+  + getTasks(option:String, criteria:String) : List<Task>
+  + findByProject(projectId:int) : List<Task>
+  + addTask(task:Task) : void
+}
+
+class ProjectCatalogue {
+  + findProjectById(id:int) : Project
+  + addProject(project:Project) : void
+}
+
+class CollaboratorCatalogue {
+  + getAllCollaborators() : List<Collaborator>
+  + getOverloadedCollaborators() : List<Collaborator>
 }
 
 ' =========================
@@ -55,7 +77,11 @@ class Task {
   + updatePriority(priority:PriorityLevel) : void
   + updateDueDate(date:Date) : void
   + createSubtask(title:String) : Subtask
+  + getSubtasksSummary() : String
+  + assignCollaborator(collab:Collaborator) : Subtask
 }
+
+TaskCatalogue "1" *-- "0..*" Task 
 
 note left of Task
 OCL 1:
@@ -87,6 +113,8 @@ class Project {
   + removeTask(task:Task) : void
 }
 
+ProjectCatalogue "1" *-- "0..*" Project
+
 class Subtask {
   - id : int
   - title : String
@@ -113,11 +141,13 @@ class Collaborator {
   - name : String
   - category : CollaboratorCategory
 
-  + assignSubtask(subtask:Subtask) : void
+  + getAssignedSubtasks() : List<Subtask>
   + getOpenTasksCount() : int
   + getLimit() : int
   + isOverloaded() : Boolean
 }
+
+CollaboratorCatalogue "1" *-- "0..*" Collaborator
 
 note right of Collaborator
 OCL 4:
@@ -127,26 +157,11 @@ inv NotOverloaded:
 end note
 
 note bottom of Collaborator
-Limits:
+Limits (global/static per category,
+modifiable at runtime -> can overload instances): 
 JUNIOR = 10
 INTERMEDIATE = 5
 SENIOR = 2
-end note
-
-' =========================
-' CATEGORY (for OCL clarity)
-' =========================
-
-class CategoryLimit {
-  - category : CollaboratorCategory
-  - limit : int
-}
-
-note right of CategoryLimit
-OCL 3:
-context CategoryLimit
-inv PositiveLimit:
-  self.limit > 0
 end note
 
 ' =========================
@@ -182,19 +197,26 @@ class TaskManager {
   + cancelTask(task:Task) : void
   + searchTasks(criteria:String) : List<Task>
   + createProject(name:String) : Project
+  + assignTaskToCollaborator(task:Task, collab:Collaborator) : Subtask
+  + listOverloadedCollaborators() : List<Collaborator>
+
+  ' Export / Import facades
+  + exportTasksToCSV(option:String, criteria:String, filePath:String) : void
+  + importTasksFromCSV(filePath:String) : void
+  + exportTasksToICal(option:String, criteria:String, filePath:String) : void
 }
 
-class ExportService {
-  + exportTasks(tasks:List<Task>) : File
+class ICalExportService {
+  + exportTasksToICal(tasks:List<Task>) : File
 }
 
 class CSVConnector {
-  + importTasks(filePath:String) : List<Task>
-  + exportTasks(tasks:List<Task>, filePath:String) : void
-}
+  + importTasksFromCSV(filePath:String) : List<Task>
+  + exportTasksToCSV(tasks:List<Task>, filePath:String) : void
+} 
 
 ' =========================
-' GATEWAY (ITERATION III)
+' GATEWAY
 ' =========================
 
 interface ICalGateway {
@@ -206,7 +228,7 @@ class ICalGatewayImpl {
 }
 
 ICalGateway <|.. ICalGatewayImpl
-ExportService --> ICalGateway
+ICalExportService --> ICalGateway
 
 ' =========================
 ' ASSOCIATIONS
@@ -218,15 +240,15 @@ Task "1" *-- "0..*" ActivityEntry
 Task "0..*" -- "0..*" Tag
 
 Project "1" -- "0..*" Collaborator
-
 Subtask "0..*" --> "1" Collaborator : assignedTo
-
 Task "0..*" --> "0..1" Recurrence
 
-TaskManager --> Task
-TaskManager --> Project
+TaskManager --> TaskCatalogue
+TaskManager --> ProjectCatalogue
+TaskManager --> CollaboratorCatalogue
 TaskManager --> CSVConnector
+TaskManager --> ICalExportService
 
-ExportService --> Task
-
+ICalExportService --> TaskCatalogue
+CSVConnector --> TaskCatalogue
 @enduml
