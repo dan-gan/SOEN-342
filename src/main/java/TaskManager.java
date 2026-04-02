@@ -6,6 +6,8 @@ import java.util.Scanner;
 public class TaskManager {
     
     private static List<Task> tasks = new ArrayList<>();
+    private static CollaboratorCatalogue collaboratorCatalogue = new CollaboratorCatalogue();
+    private static ProjectCatalogue projectCatalogue = new ProjectCatalogue();
 
     public static void main(String[] args) {
         
@@ -134,6 +136,7 @@ public class TaskManager {
                     tasks = Database.getTasks();
                     break;
                 case 5:
+                    checkForOverloadedCollaborators();
                     break;
                 case 6:
                     break;
@@ -150,6 +153,7 @@ public class TaskManager {
         System.out.println("\t2. Search Tasks");
         System.out.println("\t3. Export Tasks to CSV");
         System.out.println("\t4. Import Tasks from CSV");
+        System.out.println("\t5. View Overloaded Collaborators");
         System.out.println("\t0. Exit");
     }
     public static void showSearchMenu() {
@@ -184,6 +188,22 @@ public class TaskManager {
         tasks.add(t);
         return t;
     }
+
+    public static void checkForOverloadedCollaborators(){
+        List<Collaborator> collaborators = CollaboratorCatalogue.getCollaborators();
+        int counter = 0;
+        for(Collaborator collaborator: collaborators){
+            if(collaborator.isOverloaded() == true){
+                counter++;
+                System.out.println("Name: "+ collaborator.getName()+ ",  Category: " + collaborator.getCategory()+ ",  Task Count: "+ collaborator.getOpenTaskCount() +
+                        ",  Limit: "+ collaborator.getLimit());
+            }
+        }
+        if(counter == 0){
+            System.out.println("No Collaborator is overloaded");
+        }
+    }
+
 
     public static void updateTask(){
 
