@@ -1,45 +1,67 @@
-@startuml
-title iCal Export - Sample Sequence (Export Tasks by Project)
+@startuml SequenceDiagram_iCalExport
+title iCal Export — Filtered Task List
 
-actor User
+skinparam sequenceArrowThickness 1
+skinparam sequenceParticipantBorderColor Black
+skinparam sequenceParticipantBackgroundColor White
+skinparam sequenceLifeLineBorderColor Black
+skinparam noteBackgroundColor LightYellow
+skinparam noteBorderColor Gray
 
-participant "ExportController\n(Presentation Layer)" as Controller
-participant "TaskService\n(Domain Layer)" as Service
-participant "TaskRepository" as Repo
-participant "ICalGateway\n(Interface)" as Gateway
-participant "ICalGatewayImpl\n(iCal4j)" as GatewayImpl
+actor       User               as user
+participant "ExportImportMenu" as menu   <<presentation>>
+participant "SearchService"    as search <<domain.service>>
+participant "TaskRepository"   as repo   <<persistence>>
+participant "ICalGateway"      as gw     <<domain.gateway>>
+participant "ICalGatewayImpl"  as gwImpl <<gateway>>
 
-User -> Controller : exportTasks(projectId)
+== Specify Export Criteria ==
 
-Controller -> Service : getTasksByProject(projectId)
+user  -> menu    : requestICalExport()
+menu  -> user    : promptSearchCriteria()
+user  -> menu    : criteria, outputFilePath
 
-Service -> Repo : findByProject(projectId)
-Repo --> Service : List<Task>
+== Retrieve Matching Tasks ==
 
-note right of Service
-Only tasks with due date are eligible
-Tasks without due date are ignored
-end note
+menu  -> search  : search(criteria)
+search -> repo   : findByCriteria(criteria)
+repo  --> search : List<Task>
+search --> menu  : List<Task>
 
-Service -> Service : filterTasksWithDueDate(tasks)
+== Export to iCal ==
 
-loop for each eligible Task
-    Service -> Service : getTaskDetails()
-    Service -> Service : getSubtasksSummary()
+menu -> gwImpl : exportTasks(tasks, outputStream)
+
+loop for each task in tasks
+
+    alt task.dueDate != null
+
+        gwImpl -> gwImpl : createVEVENT()
+        note right
+          SUMMARY   = task.title
+          DTSTART   = task.dueDate
+          DTEND     = task.dueDate
+          DESCRIPTION = task.description
+                      + priority, status
+                      + projectName (if any)
+                      + subtask summary (if any)
+          STATUS    = mapped from TaskStatus
+        end note
+
+    else task.dueDate == null
+
+        gwImpl -> gwImpl : skip task
+        note right: Tasks without a due date\nare ignored (spec requirement)
+
+    end
+
 end
 
-Service -> Gateway : exportToICal(taskList)
+gwImpl -> gwImpl : writeCalendar(outputStream)
+gwImpl --> menu  : void
 
-Gateway -> GatewayImpl : createCalendar()
+== Confirm ==
 
-loop for each Task
-    GatewayImpl -> GatewayImpl : createEvent(task)
-end
-
-GatewayImpl --> Service : .ics file
-
-Service --> Controller : .ics file
-
-Controller --> User : Export successful / file saved
+menu -> user : "Export complete: <n> tasks written to <file>"
 
 @enduml

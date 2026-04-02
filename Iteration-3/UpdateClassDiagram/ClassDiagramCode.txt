@@ -1,254 +1,291 @@
-@startuml
+@startuml ClassDiagram
+title Personal Task Management System — Class Diagram
 left to right direction
+
 skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
+skinparam packageStyle rectangle
 
-' =========================
-' ENUMS
-' =========================
+' ════════════════════════════════════════
+' DOMAIN MODEL
+' ════════════════════════════════════════
+package "domain.model" {
 
-enum TaskStatus {
-  OPEN
-  COMPLETED
-  CANCELLED
+    enum Priority {
+        LOW
+        MEDIUM
+        HIGH
+    }
+
+    enum TaskStatus {
+        OPEN
+        COMPLETED
+        CANCELLED
+    }
+
+    enum CollaboratorCategory {
+        SENIOR
+        INTERMEDIATE
+        JUNIOR
+    }
+
+    enum RecurrenceType {
+        DAILY
+        WEEKLY
+        MONTHLY
+    }
+
+    class Task {
+        -id: long
+        -title: String
+        -description: String
+        -creationDate: LocalDateTime
+        -priority: Priority
+        -status: TaskStatus
+        -dueDate: LocalDate
+        --
+        +complete(): void
+        +cancel(): void
+        +reopen(): void
+    }
+
+    class Project {
+        -id: long
+        -name: String <<unique>>
+        -description: String
+    }
+
+    class Subtask {
+        -id: long
+        -title: String
+        -isCompleted: boolean
+        --
+        +complete(): void
+    }
+
+    class Tag {
+        -id: long
+        -name: String
+    }
+
+    class ActivityEntry {
+        -id: long
+        -timestamp: LocalDateTime
+        -description: String
+    }
+
+    class Collaborator {
+        -id: long
+        -name: String
+        -category: CollaboratorCategory
+        --
+        +isOverloaded(): boolean
+    }
+
+    class RecurrencePattern {
+        -id: long
+        -type: RecurrenceType
+        -interval: int
+        -startDate: LocalDate
+        -endDate: LocalDate
+        -weekdays: Set<DayOfWeek>
+    }
 }
 
-enum PriorityLevel {
-  LOW
-  MEDIUM
-  HIGH
-}
+' ════════════════════════════════════════
+' DOMAIN RELATIONSHIPS
+' ════════════════════════════════════════
 
-enum CollaboratorCategory {
-  JUNIOR=10
-  INTERMEDIATE=5
-  SENIOR=2
-  
-  + setLimit(newLimit: int) : void
-}
+Task "0..*" --> "0..1" Project
+Task "1"    *-- "0..20" Subtask
+Task "0..*" --  "0..*"  Tag
+Task "1"    *-- "0..*"  ActivityEntry
+Task "0..*" --> "0..1"  RecurrencePattern
+Project "1" *-- "0..*"  Collaborator
+Task "0..*" --  "0..*"  Collaborator
+Collaborator "0..1" -- "0..*" Subtask
 
-enum DayOfWeek {
-  MONDAY
-  TUESDAY
-  WEDNESDAY
-  THURSDAY
-  FRIDAY
-  SATURDAY
-  SUNDAY
-}
+' ════════════════════════════════════════
+' OCL CONSTRAINTS
+' ════════════════════════════════════════
+note as OCL
+  <b>OCL Constraints</b>
+  ─────────────────────────────────────────────────
+  context Task inv maxSubtasks:
+    self.subtask->size() <= 20
 
-' =========================
-' CATALOGUES
-' =========================
+  context Task inv openWithoutDueDate:
+    Task.allInstances()
+      ->select(t | t.status = TaskStatus::OPEN
+               and t.dueDate = null)->size() <= 50
 
-class TaskCatalogue {
-  + getTasks(option:String, criteria:String) : List<Task>
-  + findByProject(projectId:int) : List<Task>
-  + addTask(task:Task) : void
-}
+  context Task inv uniqueOccurrence:
+    Task.allInstances()
+      ->select(t | t.recurrencePattern <> null)
+      ->isUnique(t | Tuple{n = t.title, d = t.dueDate})
 
-class ProjectCatalogue {
-  + findProjectById(id:int) : Project
-  + addProject(project:Project) : void
-}
+  context Collaborator inv noOverload:
+    self.task->select(t | t.status = TaskStatus::OPEN)
+      ->size() <= CategoryLimit.limitFor(self.category)
 
-class CollaboratorCatalogue {
-  + getAllCollaborators() : List<Collaborator>
-  + getOverloadedCollaborators() : List<Collaborator>
-}
-
-' =========================
-' ENTITY CLASSES
-' =========================
-
-class Task {
-  - id : int
-  - title : String
-  - description : String[0..1]
-  - creationDate : Date
-  - dueDate : Date[0..1]
-  - priorityLevel : PriorityLevel
-  - status : TaskStatus
-
-  + complete() : void
-  + cancel() : void
-  + isOpen() : Boolean
-  + updateTitle(title:String) : void
-  + updateDescription(desc:String) : void
-  + updatePriority(priority:PriorityLevel) : void
-  + updateDueDate(date:Date) : void
-  + createSubtask(title:String) : Subtask
-  + getSubtasksSummary() : String
-  + assignCollaborator(collab:Collaborator) : Subtask
-}
-
-TaskCatalogue "1" *-- "0..*" Task 
-
-note left of Task
-OCL 1:
-context Task
-inv MaxSubtasks:
-  self.subtasks->size() <= 20
+  context CollaboratorCategory inv positiveLimit:
+    CategoryLimit.limitFor(self) > 0
 end note
 
-note right of Task
-OCL 2:
-context Task
-inv OpenTasksWithoutDueDateLimit:
-  Task.allInstances()
-    ->select(t | t.status = TaskStatus::OPEN and t.dueDate.oclIsUndefined())
-    ->size() <= 50
-end note
-
-note bottom of Task
-Constraint:
-(title, dueDate) must be unique
-end note
-
-class Project {
-  - id : int
-  - name : String
-  - description : String[0..1]
-
-  + addTask(task:Task) : void
-  + removeTask(task:Task) : void
-}
-
-ProjectCatalogue "1" *-- "0..*" Project
-
-class Subtask {
-  - id : int
-  - title : String
-  - status : TaskStatus
-
-  + complete() : void
-}
-
-class Tag {
-  - id : int
-  - name : String
-}
-
-class ActivityEntry {
-  - timestamp : Date
-  - description : String
-}
-
-' =========================
-' COLLABORATORS
-' =========================
-
-class Collaborator {
-  - name : String
-  - category : CollaboratorCategory
-
-  + getAssignedSubtasks() : List<Subtask>
-  + getOpenTasksCount() : int
-  + getLimit() : int
-  + isOverloaded() : Boolean
-}
-
-CollaboratorCatalogue "1" *-- "0..*" Collaborator
-
-note right of Collaborator
-OCL 4:
-context Collaborator
-inv NotOverloaded:
-  self.getOpenTasksCount() <= self.getLimit()
-end note
-
-note bottom of Collaborator
-Limits (global/static per category,
-modifiable at runtime -> can overload instances): 
-JUNIOR = 10
-INTERMEDIATE = 5
-SENIOR = 2
-end note
-
-' =========================
-' RECURRENCE
-' =========================
-
-abstract class Recurrence {
-  - startDate : Date
-  - endDate : Date
-  - interval : int
-}
-
-class DailyRecurrence
-class WeeklyRecurrence {
-  - daysOfWeek : Set<DayOfWeek>
-}
-class MonthlyRecurrence {
-  - dayOfMonth : int
-}
-
-Recurrence <|-- DailyRecurrence
-Recurrence <|-- WeeklyRecurrence
-Recurrence <|-- MonthlyRecurrence
-
-' =========================
+' ════════════════════════════════════════
 ' SERVICES
-' =========================
+' ════════════════════════════════════════
+package "domain.service" {
 
-class TaskManager {
-  + createTask(title:String) : Task
-  + updateTask(task:Task) : void
-  + completeTask(task:Task) : void
-  + cancelTask(task:Task) : void
-  + searchTasks(criteria:String) : List<Task>
-  + createProject(name:String) : Project
-  + assignTaskToCollaborator(task:Task, collab:Collaborator) : Subtask
-  + listOverloadedCollaborators() : List<Collaborator>
+    class SearchCriteria {
+        -keyword: String
+        -status: TaskStatus
+        -priority: Priority
+        -dateRangeStart: LocalDate
+        -dateRangeEnd: LocalDate
+        -dayOfWeek: DayOfWeek
+        -projectId: long
+        -tagId: long
+        +isEmpty(): boolean
+    }
 
-  ' Export / Import facades
-  + exportTasksToCSV(option:String, criteria:String, filePath:String) : void
-  + importTasksFromCSV(filePath:String) : void
-  + exportTasksToICal(option:String, criteria:String, filePath:String) : void
+    class TaskService {
+        +createTask(title, priority, dueDate, projectId): Task
+        +updateTask(id, ...): Task
+        +completeTask(id: long): Task
+        +cancelTask(id: long): Task
+        +reopenTask(id: long): Task
+        +deleteTask(id: long): void
+    }
+
+    class ProjectService {
+        +createProject(name, description): Project
+        +getById(id: long): Project
+        +listAll(): List<Project>
+    }
+
+    class CollaboratorService {
+        +addCollaboratorToProject(name, category, projectId): Collaborator
+        +assignCollaboratorToTask(collaboratorId, taskId): void
+        +detectOverloaded(): List<Collaborator>
+        +changeCategory(id, category: CollaboratorCategory): void
+        +setCategoryLimit(category: CollaboratorCategory, limit: int): void
+        +getCategoryLimit(category: CollaboratorCategory): int
+    }
+
+    class SearchService {
+        +search(criteria: SearchCriteria): List<Task>
+    }
+
+    class RecurrenceService {
+        +previewOccurrenceDates(pattern: RecurrencePattern): List<LocalDate>
+        +generateOccurrences(pattern, title, priority): List<Task>
+    }
+
+    class CsvService {
+        +exportTasks(tasks: List<Task>, out: OutputStream): void
+        +importTasks(in: InputStream): ImportResult
+    }
 }
 
-class ICalExportService {
-  + exportTasksToICal(tasks:List<Task>) : File
+' ════════════════════════════════════════
+' PERSISTENCE
+' ════════════════════════════════════════
+package "persistence" {
+
+    interface TaskRepository {
+        +save(task: Task): Task
+        +findById(id: long): Task
+        +findAll(): List<Task>
+        +countOpenWithoutDueDate(): int
+    }
+
+    interface ProjectRepository {
+        +save(project: Project): Project
+        +findByName(name: String): Project
+        +findAll(): List<Project>
+    }
+
+    interface CollaboratorRepository {
+        +save(c: Collaborator): Collaborator
+        +findByProject(projectId: long): List<Collaborator>
+    }
 }
 
-class CSVConnector {
-  + importTasksFromCSV(filePath:String) : List<Task>
-  + exportTasksToCSV(tasks:List<Task>, filePath:String) : void
-} 
-
-' =========================
+' ════════════════════════════════════════
 ' GATEWAY
-' =========================
+' ════════════════════════════════════════
+package "gateway" {
 
-interface ICalGateway {
-  + exportToICal(tasks:List<Task>) : File
+    interface ICalGateway {
+        +exportTask(task: Task, out: OutputStream): void
+        +exportTasks(tasks: List<Task>, out: OutputStream): void
+    }
 }
 
-class ICalGatewayImpl {
-  + exportToICal(tasks:List<Task>) : File
+' ════════════════════════════════════════
+' PRESENTATION LAYER
+' ════════════════════════════════════════
+package "presentation" {
+
+    class App {
+        +run(): void
+    }
+
+    class TaskMenu {
+        +show(): void
+    }
+
+    class ProjectMenu {
+        +show(): void
+    }
+
+    class CollaboratorMenu {
+        +show(): void
+    }
+
+    class SearchMenu {
+        +show(): void
+    }
+
+    class RecurrenceMenu {
+        +show(): void
+    }
+
+    class ExportImportMenu {
+        +show(): void
+    }
+
+    App --> TaskMenu
+    App --> ProjectMenu
+    App --> CollaboratorMenu
+    App --> SearchMenu
+    App --> RecurrenceMenu
+    App --> ExportImportMenu
 }
 
-ICalGateway <|.. ICalGatewayImpl
-ICalExportService --> ICalGateway
+' ════════════════════════════════════════
+' LAYER DEPENDENCIES
+' ════════════════════════════════════════
 
-' =========================
-' ASSOCIATIONS
-' =========================
+TaskMenu          --> TaskService
+ProjectMenu       --> ProjectService
+CollaboratorMenu  --> CollaboratorService
+SearchMenu        --> SearchService
+RecurrenceMenu    --> RecurrenceService
+ExportImportMenu  --> CsvService
+ExportImportMenu  --> ICalGateway
 
-Project "1" -- "0..*" Task : contains
-Task "1" *-- "0..*" Subtask
-Task "1" *-- "0..*" ActivityEntry
-Task "0..*" -- "0..*" Tag
+TaskService       --> TaskRepository
+ProjectService    --> ProjectRepository
+CollaboratorService --> CollaboratorRepository
+SearchService     --> TaskRepository
+CsvService        --> TaskRepository
+CsvService        --> ProjectRepository
+RecurrenceService --> TaskService
 
-Project "1" -- "0..*" Collaborator
-Subtask "0..*" --> "1" Collaborator : assignedTo
-Task "0..*" --> "0..1" Recurrence
-
-TaskManager --> TaskCatalogue
-TaskManager --> ProjectCatalogue
-TaskManager --> CollaboratorCatalogue
-TaskManager --> CSVConnector
-TaskManager --> ICalExportService
-
-ICalExportService --> TaskCatalogue
-CSVConnector --> TaskCatalogue
 @enduml
