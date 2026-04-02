@@ -43,6 +43,22 @@ public class Main {
                                                              tagSvc, taskRepo, collaboratorRepo, subtaskRepo, tagRepo);
         ICalGateway         icalGateway     = new ICalGatewayImpl();
 
+        // Seed demo data if DB is empty or --seed flag passed
+        boolean forceSeed = args.length > 0 && "--seed".equals(args[0]);
+        try {
+            boolean isEmpty = taskSvc.listAll().isEmpty();
+            if (isEmpty || forceSeed) {
+                if (forceSeed && !isEmpty) {
+                    System.out.println("[Seeder] --seed flag detected but DB is not empty. Delete tasks.db first to reseed.");
+                } else {
+                    new DevDataSeeder(taskSvc, projectSvc, tagSvc, subtaskSvc,
+                            collaboratorSvc, recurrenceSvc, activitySvc).seed();
+                }
+            }
+        } catch (TaskManagerException e) {
+            System.err.println("[Seeder] Warning: " + e.getMessage());
+        }
+
         // Menus
         TaskMenu          taskMenu          = new TaskMenu(taskSvc, subtaskSvc, tagSvc, projectSvc, activitySvc);
         ProjectMenu       projectMenu       = new ProjectMenu(projectSvc);
