@@ -1,0 +1,99 @@
+@startuml
+left to right direction
+actor "Single User" as fc
+
+rectangle "Personal Task Management System" {
+
+  package "Critical Use Case" {
+    usecase "Create Task" as UC1
+    usecase "Update Task" as UCU
+    usecase "View Tasks" as UCV
+    usecase "Complete Task" as UC9
+    usecase "Cancel Task" as UC10
+  }
+
+  package "Task Update Options" {
+    usecase "Update Title" as u1
+    usecase "Update Description" as u2
+    usecase "Update Priority" as u3
+    usecase "Update Due Date" as u4
+    usecase "Update Associated Project" as u6
+    usecase "Update Tags" as u7
+  }
+
+  package "Additional Use Cases" {
+    usecase "Create Project" as UC8
+    usecase "Assign Task to Project" as UC2
+    usecase "Add Subtask" as UC3
+    usecase "Assign Tags to Task" as UC4
+    usecase "View Activity History per Task" as UC7
+    usecase "Create Recurring Task" as UC11
+
+    usecase "Create Collaborator" as UC12
+    usecase "Assign Collaborator to Task" as UC13
+    usecase "Update Collaborator Task Limit" as UC14
+    usecase "List Overloaded Collaborators" as UC17
+
+    usecase "Import Tasks from CSV" as UC15
+    usecase "Export Tasks to CSV" as UC16
+    usecase "Export Tasks to iCal" as UC18
+  }
+
+  package "Task View / Search Options" {
+    usecase "List by Due Date (Specific/Range)" as v1
+    usecase "List by Priority" as v2
+    usecase "List by Status" as v3
+    usecase "List by Project" as v4
+    usecase "List by Tag" as v5
+    usecase "Search by keyword (Title/Description)" as v6
+  }
+
+  package "iCal Export Options" {
+    usecase "Export Single Task" as ic1
+    usecase "Export All Tasks in Project" as ic2
+    usecase "Export Filtered Task List" as ic3
+  }
+
+}
+
+UC1 <.. UC11 : <<extend>>
+
+fc --> UC1
+fc --> UC2
+fc --> UC3
+fc --> UC4
+fc --> UCU
+fc --> UCV
+fc --> UC7
+fc --> UC8
+fc --> UC9
+fc --> UC10
+
+fc --> UC12
+fc --> UC13
+fc --> UC14
+fc --> UC17
+
+fc --> UC15
+fc --> UC16
+fc --> UC18
+
+UCU <.. u1 : <<extend>>
+UCU <.. u2 : <<extend>>
+UCU <.. u3 : <<extend>>
+UCU <.. u4 : <<extend>>
+UCU <.. u6 : <<extend>>
+UCU <.. u7 : <<extend>>
+
+UCV <.. v1 : <<extend>>
+UCV <.. v2 : <<extend>>
+UCV <.. v3 : <<extend>>
+UCV <.. v4 : <<extend>>
+UCV <.. v5 : <<extend>>
+UCV <.. v6 : <<extend>>
+
+UC18 <.. ic1 : <<extend>>
+UC18 <.. ic2 : <<extend>>
+UC18 <.. ic3 : <<extend>>
+
+@enduml
