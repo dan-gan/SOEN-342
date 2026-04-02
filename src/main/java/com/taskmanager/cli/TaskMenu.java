@@ -215,6 +215,7 @@ public class TaskMenu {
         ConsoleUtils.println("\n=== Task #" + task.getId() + " ===");
         ConsoleUtils.println("Title:       " + task.getTitle());
         ConsoleUtils.println("Description: " + nvl(task.getDescription()));
+        ConsoleUtils.println("Created:     " + task.getCreationDate());
         ConsoleUtils.println("Priority:    " + task.getPriority());
         ConsoleUtils.println("Status:      " + task.getStatus());
         ConsoleUtils.println("Due Date:    " + (task.getDueDate() != null ? task.getDueDate() : "none"));

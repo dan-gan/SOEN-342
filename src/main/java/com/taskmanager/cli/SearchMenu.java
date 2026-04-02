@@ -1,30 +1,37 @@
 package com.taskmanager.cli;
 
+import com.taskmanager.domain.gateway.ICalGateway;
 import com.taskmanager.domain.model.Priority;
 import com.taskmanager.domain.model.Tag;
 import com.taskmanager.domain.model.Task;
 import com.taskmanager.domain.model.TaskStatus;
-import com.taskmanager.domain.service.ProjectService;
-import com.taskmanager.domain.service.SearchCriteria;
-import com.taskmanager.domain.service.SearchService;
-import com.taskmanager.domain.service.TagService;
+import com.taskmanager.domain.service.*;
 import com.taskmanager.exception.TaskManagerException;
 
+import java.io.FileOutputStream;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SearchMenu {
 
     private final SearchService searchSvc;
     private final ProjectService projectSvc;
     private final TagService tagSvc;
+    private final CsvService csvSvc;
+    private final ICalGateway icalGateway;
+    private final SubtaskService subtaskSvc;
 
-    public SearchMenu(SearchService searchSvc, ProjectService projectSvc, TagService tagSvc) {
+    public SearchMenu(SearchService searchSvc, ProjectService projectSvc, TagService tagSvc,
+                      CsvService csvSvc, ICalGateway icalGateway, SubtaskService subtaskSvc) {
         this.searchSvc = searchSvc;
         this.projectSvc = projectSvc;
         this.tagSvc = tagSvc;
+        this.csvSvc = csvSvc;
+        this.icalGateway = icalGateway;
+        this.subtaskSvc = subtaskSvc;
     }
 
     public void show() {
@@ -91,6 +98,7 @@ public class SearchMenu {
             List<Task> results = searchSvc.search(criteria);
             ConsoleUtils.println("Found " + results.size() + " task(s).");
             printTaskTable(results);
+            offerExport(results);
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }
@@ -101,8 +109,39 @@ public class SearchMenu {
             List<Task> results = searchSvc.search(null);
             ConsoleUtils.println("Open tasks (" + results.size() + "):");
             printTaskTable(results);
+            offerExport(results);
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void offerExport(List<Task> results) {
+        if (results.isEmpty()) return;
+        ConsoleUtils.println("Export results? 0=No  1=CSV  2=iCal");
+        int choice = ConsoleUtils.readInt("Choose: ", 0, 2);
+        if (choice == 0) return;
+        String path = ConsoleUtils.readString("Output file path: ");
+        try {
+            if (choice == 1) {
+                try (FileOutputStream fos = new FileOutputStream(path)) {
+                    csvSvc.exportTasks(results, fos);
+                    ConsoleUtils.printSuccess("Exported " + results.size() + " tasks to " + path);
+                }
+            } else {
+                try (FileOutputStream fos = new FileOutputStream(path)) {
+                    icalGateway.exportTasks(
+                        results,
+                        projectId -> { try { return projectSvc.getById(projectId); } catch (Exception e) { return null; } },
+                        taskId -> { try { return subtaskSvc.listByTask(taskId).stream()
+                            .map(s -> (s.isCompleted() ? "[x] " : "[ ] ") + s.getTitle())
+                            .collect(Collectors.toList()); } catch (Exception e) { return List.of(); } },
+                        fos
+                    );
+                    ConsoleUtils.printSuccess("Exported to " + path);
+                }
+            }
+        } catch (Exception e) {
+            ConsoleUtils.printError("Export failed: " + e.getMessage());
         }
     }
 

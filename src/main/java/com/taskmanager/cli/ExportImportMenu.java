@@ -39,14 +39,16 @@ public class ExportImportMenu {
             ConsoleUtils.println("3. Export all tasks to iCal (.ics)");
             ConsoleUtils.println("4. Export project tasks to iCal (.ics)");
             ConsoleUtils.println("5. Export open tasks to iCal (.ics)");
+            ConsoleUtils.println("6. Export single task to iCal (.ics)");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 5);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 6);
             switch (choice) {
                 case 1 -> handleCsvExport();
                 case 2 -> handleCsvImport();
                 case 3 -> handleIcalExportAll();
                 case 4 -> handleIcalExportProject();
                 case 5 -> handleIcalExportOpen();
+                case 6 -> handleIcalExportSingle();
                 case 0 -> { return; }
             }
         }
@@ -97,6 +99,23 @@ public class ExportImportMenu {
                 .collect(Collectors.toList());
             try (FileOutputStream fos = new FileOutputStream(path)) {
                 exportIcal(tasks, path, fos);
+            }
+        } catch (Exception e) {
+            ConsoleUtils.printError("Export failed: " + e.getMessage());
+        }
+    }
+
+    private void handleIcalExportSingle() {
+        try {
+            long taskId = ConsoleUtils.readInt("Task ID: ");
+            Task task = taskSvc.getById(taskId);
+            if (task.getDueDate() == null) {
+                ConsoleUtils.printError("Task has no due date and cannot be exported to iCal.");
+                return;
+            }
+            String path = ConsoleUtils.readString("Output file path (e.g. task.ics): ");
+            try (FileOutputStream fos = new FileOutputStream(path)) {
+                exportIcal(List.of(task), path, fos);
             }
         } catch (Exception e) {
             ConsoleUtils.printError("Export failed: " + e.getMessage());

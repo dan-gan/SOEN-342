@@ -48,7 +48,7 @@ public class Main {
         ProjectMenu       projectMenu       = new ProjectMenu(projectSvc);
         CollaboratorMenu  collaboratorMenu  = new CollaboratorMenu(collaboratorSvc, projectSvc);
         OverloadMenu      overloadMenu      = new OverloadMenu(collaboratorSvc);
-        SearchMenu        searchMenu        = new SearchMenu(searchSvc, projectSvc, tagSvc);
+        SearchMenu        searchMenu        = new SearchMenu(searchSvc, projectSvc, tagSvc, csvSvc, icalGateway, subtaskSvc);
         RecurrenceMenu    recurrenceMenu    = new RecurrenceMenu(recurrenceSvc);
         ExportImportMenu  exportImportMenu  = new ExportImportMenu(csvSvc, icalGateway, searchSvc,
                                                                     projectSvc, taskSvc, subtaskSvc);
