@@ -5,5 +5,19 @@ misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
-# Other
+# Maven
+target/
+
+# Compiled classes
 *.class
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# iCal export output
+*.ics
+
+# CSV export output
+*.csv
