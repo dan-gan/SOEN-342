@@ -33,26 +33,34 @@ inv MaxOpenTasksWithoutDueDate:
 
 **Business Rule:** "The limit for open tasks for each collaborator category is a positive integer."
 
-*Example: Senior collaborators are limited to 2 open tasks.*
-
 ```ocl
 context Collaborator
 inv CollaboratorCategoryOpenTaskLimit:
     if self.category = CollaboratorCategory::SENIOR then
         self.assignedTasks->select(status = Status::OPEN)->size() <= 2
-    else if self.category = CollaboratorCategory::JUNIOR then
+    else if self.category = CollaboratorCategory::INTERMEDIATE then
         self.assignedTasks->select(status = Status::OPEN)->size() <= 5
-    else if self.category = CollaboratorCategory::INTERN then
-        self.assignedTasks->select(status = Status::OPEN)->size() <= 1
+    else if self.category = CollaboratorCategory::JUNIOR then
+        self.assignedTasks->select(status = Status::OPEN)->size() <= 10
     else
         true
     endif endif endif
 ```
+OR 
 
-**Configuration:**
+```ocl
+context Collaborator
+let openTasks : Integer = self.assignedTasks->select(status = Status::OPEN)->size()
+    let categoryLimit : Integer = self.category.getOpenTaskLimit()
+    in openTasks <= categoryLimit
+```
+
+**Generic Constraint:** The above uses a generic approach referencing `category.getOpenTaskLimit()` which allows limits to be configured dynamically. If these limits are modified, this specification document should be updated accordingly. 
+
+**Configuration (from Collaborator.java):**
 - SENIOR: max 2 open tasks
-- JUNIOR: max 5 open tasks
-- INTERN: max 1 open task
+- INTERMEDIATE: max 5 open tasks
+- JUNIOR: max 10 open tasks
 
 ---
 
@@ -83,13 +91,5 @@ inv NoOverloadConstraint:
 
 ---
 
-## Summary
-
-| Constraint ID | Rule | Type | Scope |
-|---|---|---|---|
-| 1 | Task subtask limit | Instance | Task |
-| 2 | Open tasks without due date limit | Global | TaskManager |
-| 3 | Category-based open task limit | Instance | Collaborator |
-| 4 | No overload | Instance | Collaborator |
 
 These constraints ensure data integrity and enforce business logic that cannot be represented in UML class diagrams alone.
