@@ -27,13 +27,15 @@ public class CollaboratorMenu {
             ConsoleUtils.println("2. List collaborators in project");
             ConsoleUtils.println("3. Assign collaborator to task");
             ConsoleUtils.println("4. Change collaborator category");
+            ConsoleUtils.println("5. Set category limit");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 4);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 5);
             switch (choice) {
                 case 1 -> handleAdd();
                 case 2 -> handleList();
                 case 3 -> handleAssign();
                 case 4 -> handleChangeCategory();
+                case 5 -> handleSetCategoryLimit();
                 case 0 -> { return; }
             }
         }
@@ -91,9 +93,29 @@ public class CollaboratorMenu {
         }
     }
 
+    private void handleSetCategoryLimit() {
+        try {
+            CollaboratorCategory cat = readCategory();
+            int current = collaboratorSvc.getCategoryLimit(cat);
+            ConsoleUtils.println("Current limit for " + cat + ": " + current);
+            int newLimit = ConsoleUtils.readInt("New limit (positive integer): ");
+            collaboratorSvc.setCategoryLimit(cat, newLimit);
+            ConsoleUtils.printSuccess("Limit for " + cat + " set to " + newLimit + ".");
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
     private CollaboratorCategory readCategory() {
-        ConsoleUtils.println("Category: 1=SENIOR(2)  2=INTERMEDIATE(5)  3=JUNIOR(10)");
-        int choice = ConsoleUtils.readInt("Choose: ", 1, 3);
-        return switch (choice) { case 1 -> CollaboratorCategory.SENIOR; case 2 -> CollaboratorCategory.INTERMEDIATE; default -> CollaboratorCategory.JUNIOR; };
+        CollaboratorCategory[] cats = CollaboratorCategory.values();
+        StringBuilder sb = new StringBuilder("Category: ");
+        for (int i = 0; i < cats.length; i++) {
+            sb.append((i + 1)).append("=").append(cats[i])
+              .append("(limit:").append(cats[i].getOpenTaskLimit()).append(")");
+            if (i < cats.length - 1) sb.append("  ");
+        }
+        ConsoleUtils.println(sb.toString());
+        int choice = ConsoleUtils.readInt("Choose: ", 1, cats.length);
+        return cats[choice - 1];
     }
 }

@@ -114,6 +114,20 @@ public class CollaboratorService {
         return requireCollaborator(collaboratorId);
     }
 
+    public void setCategoryLimit(CollaboratorCategory category, int limit) throws TaskManagerException {
+        if (category == null) throw new ValidationException("Category cannot be null.");
+        try {
+            CollaboratorCategory.setLimit(category, limit);
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException(e.getMessage());
+        }
+    }
+
+    public int getCategoryLimit(CollaboratorCategory category) throws TaskManagerException {
+        if (category == null) throw new ValidationException("Category cannot be null.");
+        return category.getOpenTaskLimit();
+    }
+
     public Collaborator findOrCreate(String name, CollaboratorCategory category, long projectId)
             throws TaskManagerException {
         return collaboratorRepo.findByNameAndProject(name, projectId)
