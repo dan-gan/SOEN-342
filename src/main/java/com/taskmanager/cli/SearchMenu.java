@@ -7,6 +7,7 @@ import com.taskmanager.domain.model.Task;
 import com.taskmanager.domain.model.TaskStatus;
 import com.taskmanager.domain.service.*;
 import com.taskmanager.exception.TaskManagerException;
+import com.taskmanager.exception.ValidationException;
 
 import java.io.FileOutputStream;
 import java.time.DayOfWeek;
@@ -84,7 +85,11 @@ public class SearchMenu {
 
             String projectIdStr = ConsoleUtils.readOptionalString("Project ID (blank to skip): ");
             if (!projectIdStr.isBlank()) {
-                try { criteria.setProjectId(Long.parseLong(projectIdStr)); } catch (NumberFormatException ignored) {}
+                try {
+                    criteria.setProjectId(Long.parseLong(projectIdStr));
+                } catch (NumberFormatException ignored) {
+                    throw new ValidationException("Project ID must be a valid number.");
+                }
             }
 
             String tagName = ConsoleUtils.readOptionalString("Tag name (blank to skip): ");

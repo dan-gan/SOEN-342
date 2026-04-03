@@ -3,6 +3,7 @@ package com.taskmanager.cli;
 import com.taskmanager.domain.model.*;
 import com.taskmanager.domain.service.*;
 import com.taskmanager.exception.TaskManagerException;
+import com.taskmanager.exception.ValidationException;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -242,7 +243,11 @@ public class TaskMenu {
     private Long readOptionalProjectId() throws TaskManagerException {
         String input = ConsoleUtils.readOptionalString("Project ID (blank for none): ");
         if (input.isBlank()) return null;
-        try { return Long.parseLong(input); } catch (NumberFormatException e) { return null; }
+        try {
+            return Long.parseLong(input);
+        } catch (NumberFormatException e) {
+            throw new ValidationException("Project ID must be a valid number.");
+        }
     }
 
     private Set<Long> readTagIds() throws TaskManagerException {
