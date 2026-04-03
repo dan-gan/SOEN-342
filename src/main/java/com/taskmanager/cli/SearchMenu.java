@@ -7,7 +7,6 @@ import com.taskmanager.domain.model.Task;
 import com.taskmanager.domain.model.TaskStatus;
 import com.taskmanager.domain.service.*;
 import com.taskmanager.exception.TaskManagerException;
-import com.taskmanager.exception.ValidationException;
 
 import java.io.FileOutputStream;
 import java.time.DayOfWeek;
@@ -160,12 +159,17 @@ public class SearchMenu {
     }
 
     private void printTaskTable(List<Task> tasks) {
+        java.util.Map<Long, String> projectNames;
+        try { projectNames = projectSvc.listAll().stream()
+            .collect(Collectors.toMap(p -> p.getId(), p -> p.getName())); }
+        catch (TaskManagerException e) { projectNames = java.util.Collections.emptyMap(); }
+        final java.util.Map<Long, String> projectNames2 = projectNames;
         ConsoleUtils.printTable(
-            List.of("ID", "Title", "Priority", "Status", "Due Date", "Project ID"),
+            List.of("ID", "Title", "Priority", "Status", "Due Date", "Project"),
             tasks.stream().map(t -> List.of(
                 String.valueOf(t.getId()), t.getTitle(), t.getPriority().name(), t.getStatus().name(),
                 t.getDueDate() != null ? t.getDueDate().toString() : "",
-                t.getProjectId() != null ? String.valueOf(t.getProjectId()) : ""
+                t.getProjectId() != null ? projectNames2.getOrDefault(t.getProjectId(), String.valueOf(t.getProjectId())) : ""
             )).collect(java.util.stream.Collectors.toList())
         );
     }

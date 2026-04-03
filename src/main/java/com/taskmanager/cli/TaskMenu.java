@@ -204,11 +204,16 @@ public class TaskMenu {
     }
 
     void printTaskTable(List<Task> tasks) {
+        java.util.Map<Long, String> projectNames;
+        try { projectNames = projectSvc.listAll().stream()
+            .collect(Collectors.toMap(p -> p.getId(), p -> p.getName())); }
+        catch (TaskManagerException e) { projectNames = java.util.Collections.emptyMap(); }
+        final java.util.Map<Long, String> pNames = projectNames;
         ConsoleUtils.printTable(List.of("ID", "Title", "Priority", "Status", "Due Date", "Project"),
             tasks.stream().map(t -> List.of(
                 String.valueOf(t.getId()), t.getTitle(), t.getPriority().name(), t.getStatus().name(),
                 t.getDueDate() != null ? t.getDueDate().toString() : "",
-                t.getProjectId() != null ? String.valueOf(t.getProjectId()) : ""
+                t.getProjectId() != null ? pNames.getOrDefault(t.getProjectId(), String.valueOf(t.getProjectId())) : ""
             )).collect(Collectors.toList()));
     }
 
@@ -220,7 +225,14 @@ public class TaskMenu {
         ConsoleUtils.println("Priority:    " + task.getPriority());
         ConsoleUtils.println("Status:      " + task.getStatus());
         ConsoleUtils.println("Due Date:    " + (task.getDueDate() != null ? task.getDueDate() : "none"));
-        ConsoleUtils.println("Project ID:  " + (task.getProjectId() != null ? task.getProjectId() : "none"));
+        String projectDisplay = "none";
+        if (task.getProjectId() != null) {
+            try { projectDisplay = projectSvc.listAll().stream()
+                .filter(p -> p.getId() == task.getProjectId())
+                .findFirst().map(p -> p.getName()).orElse(String.valueOf(task.getProjectId())); }
+            catch (TaskManagerException e) { projectDisplay = String.valueOf(task.getProjectId()); }
+        }
+        ConsoleUtils.println("Project:     " + projectDisplay);
         String tags = task.getTags().stream().map(Tag::getName).collect(Collectors.joining(", "));
         ConsoleUtils.println("Tags:        " + (tags.isEmpty() ? "none" : tags));
 
