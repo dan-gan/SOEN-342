@@ -6,6 +6,7 @@ import com.taskmanager.domain.model.RecurrenceType;
 import com.taskmanager.domain.model.Task;
 import com.taskmanager.domain.service.RecurrenceService;
 import com.taskmanager.exception.TaskManagerException;
+import com.taskmanager.exception.ValidationException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -47,7 +48,11 @@ public class RecurrenceMenu {
             String projectIdStr = ConsoleUtils.readOptionalString("Project ID (blank for none): ");
             Long projectId = null;
             if (!projectIdStr.isBlank()) {
-                try { projectId = Long.parseLong(projectIdStr); } catch (NumberFormatException ignored) {}
+                try {
+                    projectId = Long.parseLong(projectIdStr);
+                } catch (NumberFormatException ignored) {
+                    throw new ValidationException("Project ID must be a valid number.");
+                }
             }
 
             RecurrencePattern pattern = buildPattern();
