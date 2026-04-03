@@ -94,6 +94,7 @@ package "domain.model" {
         -endDate: LocalDate
         -weekdays: Set<DayOfWeek>
     }
+    
 }
 
 ' ════════════════════════════════════════
@@ -115,25 +116,30 @@ Collaborator "0..1" -- "0..*" Subtask
 note as OCL
   <b>OCL Constraints</b>
   ─────────────────────────────────────────────────
-  context Task inv maxSubtasks:
-    self.subtask->size() <= 20
+  context Task 
+  inv maxSubtasks:
+    self.subtasks->size() <= 20
 
-  context Task inv openWithoutDueDate:
+  context Task 
+  inv openWithoutDueDate:
     Task.allInstances()
       ->select(t | t.status = TaskStatus::OPEN
                and t.dueDate = null)->size() <= 50
 
-  context Task inv uniqueOccurrence:
+  context Task 
+  inv uniqueOccurrence:
     Task.allInstances()
       ->select(t | t.recurrencePattern <> null)
       ->isUnique(t | Tuple{n = t.title, d = t.dueDate})
 
-  context Collaborator inv noOverload:
-    self.task->select(t | t.status = TaskStatus::OPEN)
-      ->size() <= CategoryLimit.limitFor(self.category)
+  context Collaborator 
+  inv noOverload:
+    self.assignedTasks->select(t | t.status = TaskStatus::OPEN)
+      ->size() <= self.category.getOpenTaskLimit()
 
-  context CollaboratorCategory inv positiveLimit:
-    CategoryLimit.limitFor(self) > 0
+  context CollaboratorCategory 
+  inv positiveLimit:
+    self.getOpenTaskLimit() > 0
 end note
 
 ' ════════════════════════════════════════

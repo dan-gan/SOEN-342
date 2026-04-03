@@ -1,95 +1,296 @@
-# Formal Specifications (OCL)
+@startuml ClassDiagram
+title Personal Task Management System — Class Diagram
+left to right direction
 
-This document specifies business rules using Object Constraint Language (OCL) that cannot be fully captured in UML diagrams.
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
+skinparam packageStyle rectangle
 
-## 1. Task Subtask Constraint
+' ════════════════════════════════════════
+' DOMAIN MODEL
+' ════════════════════════════════════════
+package "domain.model" {
 
-**Business Rule:** "A task cannot have more than 20 sub-tasks."
+    enum Priority {
+        LOW
+        MEDIUM
+        HIGH
+    }
 
-```ocl
-context Task
-inv MaxSubtasks: self.subtasks->size() <= 20
-```
+    enum TaskStatus {
+        OPEN
+        COMPLETED
+        CANCELLED
+    }
 
-**Explanation:** For any Task instance, the number of subtasks associated with it must not exceed 20.
+    enum CollaboratorCategory {
+        SENIOR
+        INTERMEDIATE
+        JUNIOR
+    }
 
----
+    enum RecurrenceType {
+        DAILY
+        WEEKLY
+        MONTHLY
+    }
 
-## 2. Open Tasks Without Due Date Constraint
+    class Task {
+        -id: long
+        -title: String
+        -description: String
+        -creationDate: LocalDateTime
+        -priority: Priority
+        -status: TaskStatus
+        -dueDate: LocalDate
+        --
+        +complete(): void
+        +cancel(): void
+        +reopen(): void
+    }
 
-**Business Rule:** "The number of open tasks without a due date should not exceed 50."
+    class Project {
+        -id: long
+        -name: String <<unique>>
+        -description: String
+    }
 
-```ocl
-context TaskManager
-inv MaxOpenTasksWithoutDueDate: 
-    self.tasks->select(status = Status::OPEN and dueDate = null)->size() <= 50
-```
+    class Subtask {
+        -id: long
+        -title: String
+        -isCompleted: boolean
+        --
+        +complete(): void
+    }
 
-**Explanation:** Across all tasks managed by the TaskManager, the count of tasks with OPEN status and no due date assigned must not exceed 50.
+    class Tag {
+        -id: long
+        -name: String
+    }
 
----
+    class ActivityEntry {
+        -id: long
+        -timestamp: LocalDateTime
+        -description: String
+    }
 
-## 3. Collaborator Category Open Tasks Limit
+    class Collaborator {
+        -id: long
+        -name: String
+        -category: CollaboratorCategory
+        --
+        +isOverloaded(): boolean
+    }
 
-**Business Rule:** "The limit for open tasks for each collaborator category is a positive integer."
+    class RecurrencePattern {
+        -id: long
+        -type: RecurrenceType
+        -interval: int
+        -startDate: LocalDate
+        -endDate: LocalDate
+        -weekdays: Set<DayOfWeek>
+    }
+}
 
-```ocl
-context Collaborator
-inv CollaboratorCategoryOpenTaskLimit:
-    if self.category = CollaboratorCategory::SENIOR then
-        self.assignedTasks->select(status = Status::OPEN)->size() <= 2
-    else if self.category = CollaboratorCategory::INTERMEDIATE then
-        self.assignedTasks->select(status = Status::OPEN)->size() <= 5
-    else if self.category = CollaboratorCategory::JUNIOR then
-        self.assignedTasks->select(status = Status::OPEN)->size() <= 10
-    else
-        true
-    endif endif endif
-```
-OR 
+' ════════════════════════════════════════
+' DOMAIN RELATIONSHIPS
+' ════════════════════════════════════════
 
-```ocl
-context Collaborator
-let openTasks : Integer = self.assignedTasks->select(status = Status::OPEN)->size()
-    let categoryLimit : Integer = self.category.getOpenTaskLimit()
-    in openTasks <= categoryLimit
-```
+Task "0..*" --> "0..1" Project
+Task "1"    *-- "0..20" Subtask
+Task "0..*" --  "0..*"  Tag
+Task "1"    *-- "0..*"  ActivityEntry
+Task "0..*" --> "0..1"  RecurrencePattern
+Project "1" *-- "0..*"  Collaborator
+Task "0..*" --  "0..*"  Collaborator
+Collaborator "0..1" -- "0..*" Subtask
 
-**Generic Constraint:** The above uses a generic approach referencing `category.getOpenTaskLimit()` which allows limits to be configured dynamically. If these limits are modified, this specification document should be updated accordingly. 
+' ════════════════════════════════════════
+' OCL CONSTRAINTS
+' ════════════════════════════════════════
+note as OCL
+  <b>OCL Constraints</b>
+  ─────────────────────────────────────────────────
+  context Task 
+  inv maxSubtasks:
+    self.subtasks->size() <= 20
 
-**Configuration (from Collaborator.java):**
-- SENIOR: max 2 open tasks
-- INTERMEDIATE: max 5 open tasks
-- JUNIOR: max 10 open tasks
+  context Task 
+  inv openWithoutDueDate:
+    Task.allInstances()
+      ->select(t | t.status = TaskStatus::OPEN
+               and t.dueDate.oclIsUndefined())->size() <= 50
 
----
+  context Task 
+  inv uniqueOccurrence:
+    Task.allInstances()
+      ->select(t | t.recurrencePattern <> null)
+      ->isUnique(t | Tuple{n = t.title, d = t.dueDate})
 
-## 4. No Collaborator Overload Constraint
+  context Collaborator 
+  inv noOverload:
+    self.assignedTasks->select(t | t.status = TaskStatus::OPEN)
+      ->size() <= self.category.getOpenTaskLimit()
 
-**Business Rule:** "No collaborator must be overloaded. The number of assigned tasks that are open should not exceed the limit."
+  context CollaboratorCategory 
+  inv positiveLimit:
+    self.getOpenTaskLimit() > 0
+end note
 
-```ocl
-context Collaborator
-inv NoOverload:
-    self.assignedTasks->select(status = Status::OPEN)->size() <= 
-    self.category.getOpenTaskLimit()
-```
+' ════════════════════════════════════════
+' SERVICES
+' ════════════════════════════════════════
+package "domain.service" {
 
-**Alternative (Combined with Constraint 3):**
+    class SearchCriteria {
+        -keyword: String
+        -status: TaskStatus
+        -priority: Priority
+        -dateRangeStart: LocalDate
+        -dateRangeEnd: LocalDate
+        -dayOfWeek: DayOfWeek
+        -projectId: long
+        -tagId: long
+        +isEmpty(): boolean
+    }
 
-```ocl
-context Collaborator
-inv NoOverloadConstraint:
-    let openTaskCount : Integer = 
-        self.assignedTasks->select(status = Status::OPEN)->size()
-    let categoryLimit : Integer = 
-        self.category.getOpenTaskLimit()
-    in openTaskCount <= categoryLimit
-```
+    class TaskService {
+        +createTask(title, priority, dueDate, projectId): Task
+        +updateTask(id, ...): Task
+        +completeTask(id: long): Task
+        +cancelTask(id: long): Task
+        +reopenTask(id: long): Task
+        +deleteTask(id: long): void
+    }
 
-**Explanation:** For every Collaborator, the count of their assigned tasks with OPEN status must not exceed the configured limit for their category.
+    class ProjectService {
+        +createProject(name, description): Project
+        +getById(id: long): Project
+        +listAll(): List<Project>
+    }
 
----
+    class CollaboratorService {
+        +addCollaboratorToProject(name, category, projectId): Collaborator
+        +assignCollaboratorToTask(collaboratorId, taskId): void
+        +detectOverloaded(): List<Collaborator>
+        +changeCategory(id, category: CollaboratorCategory): void
+        +setCategoryLimit(category: CollaboratorCategory, limit: int): void
+        +getCategoryLimit(category: CollaboratorCategory): int
+    }
 
+    class SearchService {
+        +search(criteria: SearchCriteria): List<Task>
+    }
 
-These constraints ensure data integrity and enforce business logic that cannot be represented in UML class diagrams alone.
+    class RecurrenceService {
+        +previewOccurrenceDates(pattern: RecurrencePattern): List<LocalDate>
+        +generateOccurrences(pattern, title, priority): List<Task>
+    }
+
+    class CsvService {
+        +exportTasks(tasks: List<Task>, out: OutputStream): void
+        +importTasks(in: InputStream): ImportResult
+    }
+}
+
+' ════════════════════════════════════════
+' PERSISTENCE
+' ════════════════════════════════════════
+package "persistence" {
+
+    interface TaskRepository {
+        +save(task: Task): Task
+        +findById(id: long): Task
+        +findAll(): List<Task>
+        +countOpenWithoutDueDate(): int
+    }
+
+    interface ProjectRepository {
+        +save(project: Project): Project
+        +findByName(name: String): Project
+        +findAll(): List<Project>
+    }
+
+    interface CollaboratorRepository {
+        +save(c: Collaborator): Collaborator
+        +findByProject(projectId: long): List<Collaborator>
+    }
+}
+
+' ════════════════════════════════════════
+' GATEWAY
+' ════════════════════════════════════════
+package "gateway" {
+
+    interface ICalGateway {
+        +exportTask(task: Task, out: OutputStream): void
+        +exportTasks(tasks: List<Task>, out: OutputStream): void
+    }
+}
+
+' ════════════════════════════════════════
+' PRESENTATION LAYER
+' ════════════════════════════════════════
+package "presentation" {
+
+    class App {
+        +run(): void
+    }
+
+    class TaskMenu {
+        +show(): void
+    }
+
+    class ProjectMenu {
+        +show(): void
+    }
+
+    class CollaboratorMenu {
+        +show(): void
+    }
+
+    class SearchMenu {
+        +show(): void
+    }
+
+    class RecurrenceMenu {
+        +show(): void
+    }
+
+    class ExportImportMenu {
+        +show(): void
+    }
+
+    App --> TaskMenu
+    App --> ProjectMenu
+    App --> CollaboratorMenu
+    App --> SearchMenu
+    App --> RecurrenceMenu
+    App --> ExportImportMenu
+}
+
+' ════════════════════════════════════════
+' LAYER DEPENDENCIES
+' ════════════════════════════════════════
+
+TaskMenu          --> TaskService
+ProjectMenu       --> ProjectService
+CollaboratorMenu  --> CollaboratorService
+SearchMenu        --> SearchService
+RecurrenceMenu    --> RecurrenceService
+ExportImportMenu  --> CsvService
+ExportImportMenu  --> ICalGateway
+
+TaskService       --> TaskRepository
+ProjectService    --> ProjectRepository
+CollaboratorService --> CollaboratorRepository
+SearchService     --> TaskRepository
+CsvService        --> TaskRepository
+CsvService        --> ProjectRepository
+RecurrenceService --> TaskService
+
+@enduml
