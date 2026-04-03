@@ -82,9 +82,22 @@ public class SearchMenu {
             int dowChoice = ConsoleUtils.readInt("Choose: ", 0, 7);
             if (dowChoice > 0) criteria.setDayOfWeek(DayOfWeek.of(dowChoice));
 
-            String projectIdStr = ConsoleUtils.readOptionalString("Project ID (blank to skip): ");
-            if (!projectIdStr.isBlank()) {
-                try { criteria.setProjectId(Long.parseLong(projectIdStr)); } catch (NumberFormatException ignored) {}
+            List<com.taskmanager.domain.model.Project> allProjects = projectSvc.listAll();
+            String projectName = ConsoleUtils.readOptionalString("Project name (blank to skip): ");
+            if (!projectName.isBlank()) {
+                allProjects.stream()
+                    .filter(p -> p.getName().equalsIgnoreCase(projectName))
+                    .findFirst()
+                    .ifPresentOrElse(
+                        p -> criteria.setProjectId(p.getId()),
+                        () -> {
+                            ConsoleUtils.printWarning("No project found with name \"" + projectName + "\". Skipping.");
+                            String names = allProjects.stream()
+                                .map(com.taskmanager.domain.model.Project::getName)
+                                .collect(Collectors.joining(", "));
+                            ConsoleUtils.println("Available: " + (names.isEmpty() ? "(none)" : names));
+                        }
+                    );
             }
 
             String tagName = ConsoleUtils.readOptionalString("Tag name (blank to skip): ");
