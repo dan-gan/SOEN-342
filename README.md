@@ -1,6 +1,6 @@
 ## Personal Task Management System (PTMS)
 
-dangan: Daniel Ganchev - 40315755 — Team Lead
+dangan: Daniel Ganchev - 40315755 - Team Lead
 <br> soumeyadiop: Souméya Diop - 40197160
 <br> Hildthelsta: Dmitrii Cazacu - 40314501
 
