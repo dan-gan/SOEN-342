@@ -1,0 +1,70 @@
+@startuml TaskStateMachine
+title Task — Protocol State Machine
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam state {
+    BackgroundColor #EEF2FF
+    BorderColor #534AB7
+    FontColor #26215C
+    FontSize 13
+    ArrowColor #534AB7
+    ArrowFontSize 11
+    ArrowFontColor #3C3489
+    StartColor #26215C
+    EndColor #26215C
+    AttributeFontSize 11
+    AttributeFontColor #534AB7
+}
+
+[*] --> OPEN : createTask(title, priority)\n[title != null]
+
+state OPEN {
+    state "No due date" as NDD
+    state "Has due date" as HDD
+
+    [*] --> NDD
+    NDD --> HDD : updateDueDate(d)\n[undated count < 50]
+    HDD --> NDD : removeDueDate()\n[undated count + 1 ≤ 50]
+
+    state "Internal operations" as IO {
+        state "updateTask(..)" as U : pre: status = OPEN\npost: fields updated, activity logged
+        state "addSubtask(title)" as S : pre: subtasks.size() < 20\npost: subtask added
+        state "assignCollaborator(id)" as C : pre: collaborator not overloaded\npost: collaborator assigned
+        state "addTag / addToProject" as T : post: association updated
+    }
+}
+
+OPEN --> CANCELLED : cancelTask(id)\n[pre: status = OPEN]\n[post: CANCELLED, activity logged]
+OPEN --> COMPLETED : completeTask(id)\n[pre: status = OPEN]\n[post: COMPLETED, activity logged]
+
+CANCELLED --> OPEN : reopenTask(id)\n[undated count ok]\n[post: OPEN, activity logged]
+COMPLETED --> OPEN : reopenTask(id)\n[undated count ok]\n[post: OPEN, activity logged]
+
+note right of OPEN
+  <b>OCL invariants</b>
+  ..
+  <b>inv maxSubtasks:</b>
+  self.subtasks->size() <= 20
+  ..
+  <b>inv openWithoutDueDate:</b>
+  Task.allInstances()
+    ->select(t | t.status = OPEN
+             and t.dueDate = null)
+    ->size() <= 50
+  ..
+  <b>inv noCollaboratorOverload:</b>
+  assignedCollaborators->forAll(c |
+    c.openTaskCount <=
+    c.category.getLimit())
+end note
+
+note bottom of COMPLETED
+  Completing all subtasks does
+  <b>not</b> auto-complete the parent task.
+end note
+
+@enduml
