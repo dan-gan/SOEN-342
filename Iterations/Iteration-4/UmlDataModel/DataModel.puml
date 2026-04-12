@@ -1,0 +1,173 @@
+@startuml DataModel
+title Personal Task Management System — Data Model (Iteration 4)
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+skinparam class {
+    BackgroundColor #EEF2FF
+    BorderColor #534AB7
+    FontColor #26215C
+    HeaderBackgroundColor #534AB7
+    HeaderFontColor #FFFFFF
+    FontSize 12
+    AttributeFontSize 11
+}
+
+skinparam arrow {
+    Color #534AB7
+    FontColor #3C3489
+    FontSize 11
+}
+
+' ─── ENUMERATIONS ───────────────────────────────────────
+
+enum Priority <<enumeration>> {
+    LOW
+    MEDIUM
+    HIGH
+}
+
+enum TaskStatus <<enumeration>> {
+    OPEN
+    COMPLETED
+    CANCELLED
+}
+
+enum CollaboratorCategory <<enumeration>> {
+    JUNIOR    {limit = 10}
+    INTERMEDIATE {limit = 5}
+    SENIOR    {limit = 2}
+    --
+    + getOpenTaskLimit() : int
+    + setLimit(int) : void
+}
+
+enum RecurrenceType <<enumeration>> {
+    DAILY
+    WEEKLY
+    MONTHLY
+}
+
+' ─── TABLES ─────────────────────────────────────────────
+
+entity schema_version {
+    * version : INTEGER <<PK>>
+}
+
+entity projects {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * name : TEXT <<UNIQUE, NOT NULL>>
+    description : TEXT
+}
+
+entity tags {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * name : TEXT <<UNIQUE, NOT NULL>>
+}
+
+entity recurrence_patterns {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * type : TEXT <<NOT NULL>>
+    * interval : INTEGER <<NOT NULL>>
+    * start_date : TEXT <<NOT NULL>>
+    end_date : TEXT
+    weekdays : TEXT
+}
+
+entity tasks {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * title : TEXT <<NOT NULL>>
+    description : TEXT
+    * creation_date : TEXT <<NOT NULL>>
+    * priority : TEXT <<NOT NULL>>
+    * status : TEXT <<NOT NULL, DEFAULT 'OPEN'>>
+    due_date : TEXT
+    project_id : INTEGER <<FK → projects, SET NULL>>
+    recurrence_pattern_id : INTEGER <<FK → recurrence_patterns, SET NULL>>
+}
+
+entity task_tags {
+    * task_id : INTEGER <<FK → tasks, CASCADE>>
+    * tag_id  : INTEGER <<FK → tags, CASCADE>>
+    --
+    <<PK (task_id, tag_id)>>
+}
+
+entity subtasks {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * title : TEXT <<NOT NULL>>
+    * is_completed : INTEGER <<NOT NULL, DEFAULT 0>>
+    * task_id : INTEGER <<FK → tasks, CASCADE>>
+}
+
+entity collaborators {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * name : TEXT <<NOT NULL>>
+    * category : TEXT <<NOT NULL>>
+    * project_id : INTEGER <<FK → projects, CASCADE>>
+}
+
+entity task_collaborators {
+    * task_id : INTEGER <<FK → tasks, CASCADE>>
+    * collaborator_id : INTEGER <<FK → collaborators, CASCADE>>
+    --
+    subtask_id : INTEGER <<FK → subtasks, SET NULL>>
+    <<PK (task_id, collaborator_id)>>
+}
+
+entity activity_entries {
+    * id : INTEGER <<PK, AUTOINCREMENT>>
+    --
+    * task_id : INTEGER <<FK → tasks, CASCADE>>
+    * timestamp : TEXT <<NOT NULL>>
+    * description : TEXT <<NOT NULL>>
+}
+
+' ─── RELATIONSHIPS ──────────────────────────────────────
+
+projects             ||--o{ tasks                : "groups\n(SET NULL on delete)"
+projects             ||--o{ collaborators         : "defines\n(CASCADE on delete)"
+recurrence_patterns  |o--o{ tasks                : "generates\n(SET NULL on delete)"
+tasks                ||--o{ subtasks             : "divides [0..20]\n(CASCADE on delete)"
+tasks                ||--o{ activity_entries     : "logs\n(CASCADE on delete)"
+tasks                }o--o{ tags                 : "task_tags\n(CASCADE both)"
+tasks                }o--o{ collaborators        : "task_collaborators\n(CASCADE both)"
+task_collaborators   }o--o| subtasks             : "auto-created subtask\n(SET NULL on delete)"
+
+tasks::priority              ..> Priority
+tasks::status                ..> TaskStatus
+collaborators::category      ..> CollaboratorCategory
+recurrence_patterns::type    ..> RecurrenceType
+
+note bottom of task_collaborators
+  Assigning a collaborator to a task
+  automatically creates a subtask and
+  links it here via subtask_id.
+  subtask_id is nullable (SET NULL)
+  in case the subtask is later deleted.
+end note
+
+note right of CollaboratorCategory
+  Limits are stored in-memory (not DB).
+  Default: JUNIOR=10, INTER=5, SENIOR=2.
+  Configurable at runtime via setLimit().
+  Changing limits can cause overload state.
+end note
+
+note bottom of tasks
+  <b>OCL constraints (enforced in services)</b>
+  subtasks.count <= 20
+  open tasks without due_date <= 50
+  (title, due_date) unique per recurrence series
+end note
+
+@enduml
