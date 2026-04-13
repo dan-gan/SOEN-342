@@ -1,0 +1,144 @@
+@startuml
+left to right direction
+skinparam classAttributeIconSize 0
+
+' =========================
+'   ENUMERATIONS
+' =========================
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskStatus {
+  OPEN
+  COMPLETED
+  CANCELLED
+}
+
+enum CollaboratorCategory {
+  JUNIOR
+  INTERMEDIATE
+  SENIOR
+}
+
+enum RecurrenceType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+' =========================
+'   CORE DOMAIN CLASSES
+' =========================
+
+class Task {
+  -id : long
+  -title : String
+  -description : String [0..1]
+  -creationDate : LocalDateTime
+  -dueDate : LocalDate [0..1]
+  -priority : Priority
+  -status : TaskStatus
+  --
+  +complete() : void
+  +cancel() : void
+  +reopen() : void
+}
+
+class Project {
+  -id : long
+  -name : String <<unique>>
+  -description : String [0..1]
+}
+
+class Subtask {
+  -id : long
+  -title : String
+  -isCompleted : boolean
+  --
+  +complete() : void
+}
+
+class Tag {
+  -id : long
+  -name : String
+}
+
+class ActivityEntry {
+  -id : long
+  -timestamp : LocalDateTime
+  -description : String
+}
+
+class Collaborator {
+  -id : long
+  -name : String
+  -category : CollaboratorCategory
+  --
+  +isOverloaded() : boolean
+}
+
+class RecurrencePattern {
+  -id : long
+  -type : RecurrenceType
+  -interval : int
+  -startDate : LocalDate
+  -endDate : LocalDate
+  -weekdays : Set<DayOfWeek>
+}
+
+' =========================
+'   ASSOCIATIONS
+' =========================
+
+Task "0..*"  -->  "0..1"  Project         : grouped in >
+Task "1"     *--  "0..20" Subtask         : contains >
+Task "0..*"  --   "0..*"  Tag             : labelled with >
+Task "1"     *--  "0..*"  ActivityEntry   : records >
+Task "0..*"  -->  "0..1"  RecurrencePattern : has-a >
+Task "0..*"  --   "0..*"  Collaborator    : assigned to 
+Project "1"  *--  "0..*"  Collaborator    : includes >
+Collaborator "0..1" -- "0..*" Subtask     : assignedTo >
+
+' =========================
+'   OCL CONSTRAINTS
+' =========================
+
+note as OCL
+  <b>OCL Constraints</b>
+  ─────────────────────────────────────────
+  context Task inv maxSubtasks:
+    self.subtask->size() <= 20
+
+  context Task inv openWithoutDueDate:
+    Task.allInstances()
+      ->select(t | t.status = TaskStatus::OPEN
+               and t.dueDate = null)->size() <= 50
+
+  context Task inv uniqueOccurrence:
+    Task.allInstances()
+      ->select(t | t.recurrencePattern <> null)
+      ->isUnique(t | Tuple{n = t.title, d = t.dueDate})
+
+  context Collaborator inv noOverload:
+    self.task->select(t | t.status = TaskStatus::OPEN)
+      ->size() <= CategoryLimit.limitFor(self.category)
+
+  context CollaboratorCategory inv positiveLimit:
+    CategoryLimit.limitFor(self) > 0
+end note
+
+@enduml
