@@ -44,6 +44,16 @@ public class CollaboratorService {
         collaboratorRepo.update(collaborator);
     }
 
+    public Collaborator updateCollaborator(long collaboratorId, String name,
+            CollaboratorCategory category, Long projectId) throws TaskManagerException {
+        Collaborator c = requireCollaborator(collaboratorId);
+        if (name != null && !name.isBlank()) c.setName(name.trim());
+        if (category != null) c.setCategory(category);
+        if (projectId != null) c.setProjectId(projectId);
+        collaboratorRepo.update(c);
+        return c;
+    }
+
     public Collaborator addCollaboratorToProject(String name, CollaboratorCategory category, long projectId)
             throws TaskManagerException {
         if (name == null || name.isBlank()) throw new ValidationException("Collaborator name cannot be empty.");

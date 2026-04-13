@@ -32,27 +32,25 @@ public class CollaboratorMenu {
     public void show() {
         while (true) {
             ConsoleUtils.println("\n--- Collaborators ---");
-            ConsoleUtils.println("1. List all collaborators");
-            ConsoleUtils.println("2. Create collaborator");
+            ConsoleUtils.println("1. Create collaborator");
+            ConsoleUtils.println("2. List all collaborators");
             ConsoleUtils.println("3. View collaborator details");
-            ConsoleUtils.println("4. Add collaborator to project");
+            ConsoleUtils.println("4. Update collaborator");
             ConsoleUtils.println("5. Assign collaborator to task");
-            ConsoleUtils.println("6. Change collaborator category");
-            ConsoleUtils.println("7. Set category limit");
-            ConsoleUtils.println("8. Delete collaborator");
-            ConsoleUtils.println("9. List overloaded collaborators");
+            ConsoleUtils.println("6. Set category limit");
+            ConsoleUtils.println("7. Delete collaborator");
+            ConsoleUtils.println("8. List overloaded collaborators");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 9);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 8);
             switch (choice) {
-                case 1 -> handleListAll();
-                case 2 -> handleCreate();
+                case 1 -> handleCreate();
+                case 2 -> handleListAll();
                 case 3 -> handleDetail();
-                case 4 -> handleAdd();
+                case 4 -> handleUpdate();
                 case 5 -> handleAssign();
-                case 6 -> handleChangeCategory();
-                case 7 -> handleSetCategoryLimit();
-                case 8 -> handleDelete();
-                case 9 -> handleOverloaded();
+                case 6 -> handleSetCategoryLimit();
+                case 7 -> handleDelete();
+                case 8 -> handleOverloaded();
                 case 0 -> { return; }
             }
         }
@@ -144,21 +142,70 @@ public class CollaboratorMenu {
         try {
             String name = ConsoleUtils.readString("Collaborator name: ");
             CollaboratorCategory cat = readCategory();
-            Collaborator c = collaboratorSvc.createCollaborator(name, cat);
-            ConsoleUtils.printSuccess("Collaborator created: [" + c.getId() + "] " + c.getName() + " (" + c.getCategory() + ")");
+
+            List<com.taskmanager.domain.model.Project> projects = projectSvc.listAll();
+            if (projects.isEmpty()) {
+                ConsoleUtils.printWarning("No projects exist. Create a project first.");
+                return;
+            }
+            ConsoleUtils.printTable(List.of("ID", "Name"),
+                projects.stream().map(p -> List.of(String.valueOf(p.getId()), p.getName()))
+                    .collect(Collectors.toList()));
+            long projectId = ConsoleUtils.readInt("Project ID: ");
+            projectSvc.getById(projectId);
+
+            Collaborator c = collaboratorSvc.addCollaboratorToProject(name, cat, projectId);
+            ConsoleUtils.printSuccess("Collaborator created: [" + c.getId() + "] " + c.getName()
+                + " (" + c.getCategory() + ") → project " + projectId);
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }
     }
 
-    private void handleAdd() {
+    private void handleUpdate() {
         try {
-            long collaboratorId = ConsoleUtils.readInt("Collaborator ID: ");
-            collaboratorSvc.getById(collaboratorId);
-            long projectId = ConsoleUtils.readInt("Project ID: ");
-            projectSvc.getById(projectId);
-            collaboratorSvc.linkToProject(collaboratorId, projectId);
-            ConsoleUtils.printSuccess("Collaborator linked to project.");
+            long id = ConsoleUtils.readInt("Collaborator ID: ");
+            Collaborator c = collaboratorSvc.getById(id);
+            ConsoleUtils.println("Current — Name: " + c.getName()
+                + "  Category: " + c.getCategory()
+                + "  Project ID: " + (c.getProjectId() != 0 ? c.getProjectId() : "(none)"));
+
+            String name = ConsoleUtils.readOptionalString("New name (blank to keep): ");
+
+            ConsoleUtils.println("New category (blank to keep current):");
+            CollaboratorCategory[] cats = CollaboratorCategory.values();
+            StringBuilder sb = new StringBuilder("  0=keep  ");
+            for (int i = 0; i < cats.length; i++)
+                sb.append((i + 1)).append("=").append(cats[i])
+                  .append("(limit:").append(cats[i].getOpenTaskLimit()).append(")")
+                  .append(i < cats.length - 1 ? "  " : "");
+            ConsoleUtils.println(sb.toString());
+            int catChoice = ConsoleUtils.readInt("Choose: ", 0, cats.length);
+            CollaboratorCategory newCat = catChoice == 0 ? null : cats[catChoice - 1];
+
+            List<com.taskmanager.domain.model.Project> projects = projectSvc.listAll();
+            ConsoleUtils.printTable(List.of("ID", "Name"),
+                projects.stream().map(p -> List.of(String.valueOf(p.getId()), p.getName()))
+                    .collect(Collectors.toList()));
+            String projectInput = ConsoleUtils.readOptionalString("New project ID (blank to keep): ");
+            Long newProjectId = null;
+            if (!projectInput.isBlank()) {
+                newProjectId = Long.parseLong(projectInput);
+                projectSvc.getById(newProjectId);
+            }
+
+            collaboratorSvc.updateCollaborator(id, name.isBlank() ? null : name, newCat, newProjectId);
+            ConsoleUtils.printSuccess("Collaborator updated.");
+
+            if (newCat != null) {
+                var warnings = collaboratorSvc.detectOverloadedCollaborators();
+                if (!warnings.isEmpty()) {
+                    ConsoleUtils.printWarning("Overloaded collaborators after category change:");
+                    warnings.forEach(w -> ConsoleUtils.println("  " + w));
+                }
+            }
+        } catch (NumberFormatException e) {
+            ConsoleUtils.printError("Project ID must be a valid number.");
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }
@@ -176,20 +223,7 @@ public class CollaboratorMenu {
         }
     }
 
-    private void handleChangeCategory() {
-        try {
-            long collaboratorId = ConsoleUtils.readInt("Collaborator ID: ");
-            CollaboratorCategory newCat = readCategory();
-            var warnings = collaboratorSvc.changeCategory(collaboratorId, newCat);
-            ConsoleUtils.printSuccess("Category updated.");
-            if (!warnings.isEmpty()) {
-                ConsoleUtils.printWarning("Overloaded collaborators after change:");
-                warnings.forEach(w -> ConsoleUtils.println("  " + w));
-            }
-        } catch (TaskManagerException e) {
-            ConsoleUtils.printError(e.getMessage());
-        }
-    }
+
 
     private void handleSetCategoryLimit() {
         try {
