@@ -167,6 +167,11 @@ public class CsvService {
             }
         }
 
+        String dueDateStr2 = dueDate != null ? dueDate.toString() : null;
+        if (dueDateStr2 != null && taskRepo.existsByTitleAndDueDate(taskName, dueDateStr2)) {
+            throw new TaskManagerException("Duplicate: task '" + taskName + "' with due date " + dueDateStr2 + " already exists.");
+        }
+
         Task task = taskSvc.createTask(taskName, description, priority, dueDate, projectId, null);
 
         // Apply status if not OPEN
