@@ -61,7 +61,7 @@ public class Main {
 
         // Menus
         TaskMenu          taskMenu          = new TaskMenu(taskSvc, subtaskSvc, tagSvc, projectSvc, activitySvc);
-        ProjectMenu       projectMenu       = new ProjectMenu(projectSvc);
+        ProjectMenu       projectMenu       = new ProjectMenu(projectSvc, taskSvc, collaboratorSvc);
         CollaboratorMenu  collaboratorMenu  = new CollaboratorMenu(collaboratorSvc, projectSvc);
         OverloadMenu      overloadMenu      = new OverloadMenu(collaboratorSvc);
         SearchMenu        searchMenu        = new SearchMenu(searchSvc, projectSvc, tagSvc, csvSvc, icalGateway, subtaskSvc);
