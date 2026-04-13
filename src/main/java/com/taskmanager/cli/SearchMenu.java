@@ -37,17 +37,31 @@ public class SearchMenu {
     public void show() {
         while (true) {
             ConsoleUtils.println("\n--- Search Tasks ---");
-            ConsoleUtils.println("1. Search with criteria");
-            ConsoleUtils.println("2. List all open tasks (default)");
+            ConsoleUtils.println("1. Search with all criteria");
+            ConsoleUtils.println("2. Search by keyword");
+            ConsoleUtils.println("3. Search by status");
+            ConsoleUtils.println("4. Search by priority");
+            ConsoleUtils.println("5. Search by project");
+            ConsoleUtils.println("6. Search by tag");
+            ConsoleUtils.println("7. Search by date");
+            ConsoleUtils.println("8. List all open tasks");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 2);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 8);
             switch (choice) {
                 case 1 -> handleSearch();
-                case 2 -> handleDefault();
+                case 2 -> handleByKeyword();
+                case 3 -> handleByStatus();
+                case 4 -> handleByPriority();
+                case 5 -> handleByProject();
+                case 6 -> handleByTag();
+                case 7 -> handleByDate();
+                case 8 -> handleDefault();
                 case 0 -> { return; }
             }
         }
     }
+
+    // ── All criteria ─────────────────────────────────────────────────────────
 
     private void handleSearch() {
         try {
@@ -108,14 +122,151 @@ public class SearchMenu {
                     .ifPresent(t -> criteria.setTagId(t.getId()));
             }
 
-            List<Task> results = searchSvc.search(criteria);
-            ConsoleUtils.println("Found " + results.size() + " task(s).");
-            printTaskTable(results);
-            offerExport(results);
+            runSearch(criteria);
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }
     }
+
+    // ── Individual searches ───────────────────────────────────────────────────
+
+    private void handleByKeyword() {
+        try {
+            String keyword = ConsoleUtils.readString("Keyword (matches title or description): ");
+            SearchCriteria c = new SearchCriteria();
+            c.setKeyword(keyword);
+            runSearch(c);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByStatus() {
+        try {
+            ConsoleUtils.println("Available statuses:  1=OPEN  2=COMPLETED  3=CANCELLED");
+            int choice = ConsoleUtils.readInt("Choose: ", 1, 3);
+            SearchCriteria c = new SearchCriteria();
+            c.setStatus(choice == 1 ? TaskStatus.OPEN : choice == 2 ? TaskStatus.COMPLETED : TaskStatus.CANCELLED);
+            runSearch(c);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByPriority() {
+        try {
+            ConsoleUtils.println("Available priorities:  1=LOW  2=MEDIUM  3=HIGH");
+            int choice = ConsoleUtils.readInt("Choose: ", 1, 3);
+            SearchCriteria c = new SearchCriteria();
+            c.setPriority(choice == 1 ? Priority.LOW : choice == 2 ? Priority.MEDIUM : Priority.HIGH);
+            runSearch(c);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByProject() {
+        try {
+            List<com.taskmanager.domain.model.Project> projects = projectSvc.listAll();
+            if (projects.isEmpty()) { ConsoleUtils.println("No projects exist."); return; }
+            ConsoleUtils.printTable(List.of("ID", "Name"),
+                projects.stream().map(p -> List.of(String.valueOf(p.getId()), p.getName()))
+                    .collect(Collectors.toList()));
+            String name = ConsoleUtils.readString("Project name: ");
+            projects.stream()
+                .filter(p -> p.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .ifPresentOrElse(p -> {
+                    try {
+                        SearchCriteria c = new SearchCriteria();
+                        c.setProjectId(p.getId());
+                        runSearch(c);
+                    } catch (TaskManagerException e) { ConsoleUtils.printError(e.getMessage()); }
+                }, () -> ConsoleUtils.printWarning("No project found with name \"" + name + "\"."));
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByTag() {
+        try {
+            List<Tag> tags = tagSvc.listAll();
+            if (tags.isEmpty()) { ConsoleUtils.println("No tags exist."); return; }
+            ConsoleUtils.printTable(List.of("ID", "Name"),
+                tags.stream().map(t -> List.of(String.valueOf(t.getId()), t.getName()))
+                    .collect(Collectors.toList()));
+            String name = ConsoleUtils.readString("Tag name: ");
+            tags.stream()
+                .filter(t -> t.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .ifPresentOrElse(t -> {
+                    try {
+                        SearchCriteria c = new SearchCriteria();
+                        c.setTagId(t.getId());
+                        runSearch(c);
+                    } catch (TaskManagerException e) { ConsoleUtils.printError(e.getMessage()); }
+                }, () -> ConsoleUtils.printWarning("No tag found with name \"" + name + "\"."));
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByDate() {
+        while (true) {
+            ConsoleUtils.println("\n--- Search by Date ---");
+            ConsoleUtils.println("1. Exact due date");
+            ConsoleUtils.println("2. Due date range");
+            ConsoleUtils.println("3. Day of week");
+            ConsoleUtils.println("0. Back");
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 3);
+            switch (choice) {
+                case 1 -> handleByExactDate();
+                case 2 -> handleByDateRange();
+                case 3 -> handleByDayOfWeek();
+                case 0 -> { return; }
+            }
+        }
+    }
+
+    private void handleByExactDate() {
+        try {
+            Optional<LocalDate> date = ConsoleUtils.readOptionalDate("Due date");
+            if (date.isEmpty()) { ConsoleUtils.println("No date entered."); return; }
+            SearchCriteria c = new SearchCriteria();
+            c.setDueDate(date.get());
+            runSearch(c);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByDateRange() {
+        try {
+            Optional<LocalDate> start = ConsoleUtils.readOptionalDate("From (due date)");
+            Optional<LocalDate> end   = ConsoleUtils.readOptionalDate("To (due date)");
+            if (start.isEmpty() && end.isEmpty()) { ConsoleUtils.println("No dates entered."); return; }
+            SearchCriteria c = new SearchCriteria();
+            start.ifPresent(c::setDateRangeStart);
+            end.ifPresent(c::setDateRangeEnd);
+            runSearch(c);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleByDayOfWeek() {
+        try {
+            ConsoleUtils.println("1=MON  2=TUE  3=WED  4=THU  5=FRI  6=SAT  7=SUN");
+            int dow = ConsoleUtils.readInt("Choose: ", 1, 7);
+            SearchCriteria c = new SearchCriteria();
+            c.setDayOfWeek(DayOfWeek.of(dow));
+            runSearch(c);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    // ── Default ───────────────────────────────────────────────────────────────
 
     private void handleDefault() {
         try {
@@ -126,6 +277,15 @@ public class SearchMenu {
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }
+    }
+
+    // ── Shared helpers ────────────────────────────────────────────────────────
+
+    private void runSearch(SearchCriteria criteria) throws TaskManagerException {
+        List<Task> results = searchSvc.search(criteria);
+        ConsoleUtils.println("Found " + results.size() + " task(s).");
+        printTaskTable(results);
+        offerExport(results);
     }
 
     private void offerExport(List<Task> results) {
@@ -163,14 +323,16 @@ public class SearchMenu {
         try { projectNames = projectSvc.listAll().stream()
             .collect(Collectors.toMap(p -> p.getId(), p -> p.getName())); }
         catch (TaskManagerException e) { projectNames = java.util.Collections.emptyMap(); }
-        final java.util.Map<Long, String> projectNames2 = projectNames;
+        final java.util.Map<Long, String> pNames = projectNames;
         ConsoleUtils.printTable(
             List.of("ID", "Title", "Priority", "Status", "Due Date", "Project"),
             tasks.stream().map(t -> List.of(
-                String.valueOf(t.getId()), t.getTitle(), ConsoleUtils.colorPriority(t.getPriority().name()), ConsoleUtils.colorStatus(t.getStatus().name()),
+                String.valueOf(t.getId()), t.getTitle(),
+                ConsoleUtils.colorPriority(t.getPriority().name()),
+                ConsoleUtils.colorStatus(t.getStatus().name()),
                 t.getDueDate() != null ? t.getDueDate().toString() : "",
-                t.getProjectId() != null ? projectNames2.getOrDefault(t.getProjectId(), String.valueOf(t.getProjectId())) : ""
-            )).collect(java.util.stream.Collectors.toList())
+                t.getProjectId() != null ? pNames.getOrDefault(t.getProjectId(), String.valueOf(t.getProjectId())) : ""
+            )).collect(Collectors.toList())
         );
     }
 }
