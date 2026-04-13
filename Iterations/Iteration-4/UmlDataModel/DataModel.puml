@@ -6,16 +6,6 @@ skinparam shadowing false
 skinparam defaultFontName Arial
 skinparam defaultFontSize 12
 
-skinparam class {
-    BackgroundColor #EEF2FF
-    BorderColor #534AB7
-    FontColor #26215C
-    HeaderBackgroundColor #534AB7
-    HeaderFontColor #FFFFFF
-    FontSize 12
-    AttributeFontSize 11
-}
-
 skinparam arrow {
     Color #534AB7
     FontColor #3C3489
