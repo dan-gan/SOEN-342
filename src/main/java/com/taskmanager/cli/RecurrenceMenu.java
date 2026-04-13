@@ -78,6 +78,19 @@ public class RecurrenceMenu {
         }
     }
 
+    private static DayOfWeek parseDayOfWeek(String s) {
+        return switch (s.toUpperCase()) {
+            case "MON", "MONDAY"    -> DayOfWeek.MONDAY;
+            case "TUE", "TUESDAY"   -> DayOfWeek.TUESDAY;
+            case "WED", "WEDNESDAY" -> DayOfWeek.WEDNESDAY;
+            case "THU", "THURSDAY"  -> DayOfWeek.THURSDAY;
+            case "FRI", "FRIDAY"    -> DayOfWeek.FRIDAY;
+            case "SAT", "SATURDAY"  -> DayOfWeek.SATURDAY;
+            case "SUN", "SUNDAY"    -> DayOfWeek.SUNDAY;
+            default -> throw new IllegalArgumentException("Unknown weekday: " + s);
+        };
+    }
+
     private RecurrencePattern buildPattern() {
         try {
             ConsoleUtils.println("Type: 1=DAILY  2=WEEKLY  3=MONTHLY");
@@ -97,7 +110,7 @@ public class RecurrenceMenu {
                 ConsoleUtils.println("Weekdays (comma-separated: MON,TUE,WED,THU,FRI,SAT,SUN): ");
                 String wdInput = ConsoleUtils.readString("Weekdays: ");
                 for (String part : wdInput.split(",")) {
-                    try { weekdays.add(DayOfWeek.valueOf(part.trim().toUpperCase())); }
+                    try { weekdays.add(parseDayOfWeek(part.trim())); }
                     catch (Exception ignored) { ConsoleUtils.printWarning("Unknown weekday: " + part.trim()); }
                 }
                 if (weekdays.isEmpty()) {
