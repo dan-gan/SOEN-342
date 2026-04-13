@@ -1,0 +1,52 @@
+-- ════════════════════════════════════════════════════════
+-- OCL Constraints — Personal Task Management System
+-- ════════════════════════════════════════════════════════
+
+
+-- ─── Context: Task ───────────────────────────────────────
+
+-- A task cannot have more than 20 subtasks.
+context Task
+inv maxSubtasks:
+  self.subtasks->size() <= 20
+
+
+-- The number of open tasks without a due date must not exceed 50.
+-- Navigates via the association end, not allInstances().
+context Task
+inv openWithoutDueDate:
+  Task.allInstances()
+    ->select(t | t.status = TaskStatus::OPEN
+             and t.dueDate.oclIsUndefined())
+    ->size() <= 50
+
+
+-- Within a recurrence series, no two tasks may share
+-- the same (title, dueDate) pair.
+context Task
+inv uniqueOccurrence:
+  not self.recurrencePattern.oclIsUndefined()
+    implies
+      self.recurrencePattern.tasks
+        ->isUnique(t | Tuple{ title = t.title, dueDate = t.dueDate })
+
+
+-- ─── Context: Collaborator ───────────────────────────────
+
+-- No collaborator may have more open assigned tasks
+-- than their category limit allows.
+context Collaborator
+inv noOverload:
+  self.assignedTasks
+    ->select(t | t.status = TaskStatus::OPEN)
+    ->size() <= self.category.getOpenTaskLimit()
+
+
+-- ─── Context: CollaboratorCategory ──────────────────────
+
+-- The open-task limit for any category must be a positive integer.
+context CollaboratorCategory
+inv positiveLimit:
+  self.getOpenTaskLimit() > 0
+
+  

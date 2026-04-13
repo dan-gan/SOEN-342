@@ -180,6 +180,7 @@ All search results offer CSV or iCal export immediately after display.
 - Data Model (UML/ER) — `Iterations/Iteration-4/UmlDataModel/`
 - Final Class Diagram — `Iterations/Iteration-4/FinalClassDiagram/`
 - Final Domain Model — `Iterations/Iteration-4/FinalDomainModel/`
+- Final OCL Contract — `Iterations/Iteration-4/FinalOclContract/`
 - Demo video — see below
 
 ## Demo Video
