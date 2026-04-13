@@ -23,21 +23,47 @@ public class CollaboratorMenu {
     public void show() {
         while (true) {
             ConsoleUtils.println("\n--- Collaborators ---");
-            ConsoleUtils.println("1. Add collaborator to project");
-            ConsoleUtils.println("2. List collaborators in project");
-            ConsoleUtils.println("3. Assign collaborator to task");
-            ConsoleUtils.println("4. Change collaborator category");
-            ConsoleUtils.println("5. Set category limit");
+            ConsoleUtils.println("1. List all collaborators");
+            ConsoleUtils.println("2. Add collaborator to project");
+            ConsoleUtils.println("3. List collaborators in project");
+            ConsoleUtils.println("4. Assign collaborator to task");
+            ConsoleUtils.println("5. Change collaborator category");
+            ConsoleUtils.println("6. Set category limit");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 5);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 6);
             switch (choice) {
-                case 1 -> handleAdd();
-                case 2 -> handleList();
-                case 3 -> handleAssign();
-                case 4 -> handleChangeCategory();
-                case 5 -> handleSetCategoryLimit();
+                case 1 -> handleListAll();
+                case 2 -> handleAdd();
+                case 3 -> handleList();
+                case 4 -> handleAssign();
+                case 5 -> handleChangeCategory();
+                case 6 -> handleSetCategoryLimit();
                 case 0 -> { return; }
             }
+        }
+    }
+
+    private void handleListAll() {
+        try {
+            List<Collaborator> all = collaboratorSvc.listAll();
+            if (all.isEmpty()) {
+                ConsoleUtils.println("No collaborators found.");
+                return;
+            }
+            java.util.Map<Long, String> projectNames = projectSvc.listAll().stream()
+                .collect(Collectors.toMap(p -> p.getId(), p -> p.getName()));
+            List<List<String>> rows = all.stream().map(c -> {
+                int open, limit;
+                try { open = collaboratorSvc.countOpenTasks(c.getId()); }
+                catch (TaskManagerException e) { open = 0; }
+                limit = c.getCategory().getOpenTaskLimit();
+                String load = open + "/" + limit + (open > limit ? " [OVERLOADED]" : "");
+                String project = projectNames.getOrDefault(c.getProjectId(), String.valueOf(c.getProjectId()));
+                return List.of(String.valueOf(c.getId()), c.getName(), c.getCategory().name(), project, load);
+            }).collect(Collectors.toList());
+            ConsoleUtils.printTable(List.of("ID", "Name", "Category", "Project", "Open/Limit"), rows);
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
         }
     }
 

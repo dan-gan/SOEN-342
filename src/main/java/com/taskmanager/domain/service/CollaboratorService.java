@@ -106,6 +106,14 @@ public class CollaboratorService {
         return warnings;
     }
 
+    public List<Collaborator> listAll() throws TaskManagerException {
+        return collaboratorRepo.findAll();
+    }
+
+    public int countOpenTasks(long collaboratorId) throws TaskManagerException {
+        return collaboratorRepo.countOpenTasksForCollaborator(collaboratorId);
+    }
+
     public List<Collaborator> listByProject(long projectId) throws TaskManagerException {
         return collaboratorRepo.findByProjectId(projectId);
     }
