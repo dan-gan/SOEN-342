@@ -18,4 +18,6 @@ public interface CollaboratorRepository {
     void linkCollaboratorToTask(long collaboratorId, long taskId, long subtaskId) throws TaskManagerException;
     void unlinkCollaboratorFromTask(long collaboratorId, long taskId) throws TaskManagerException;
     List<Long> findCollaboratorIdsByTaskId(long taskId) throws TaskManagerException;
+    List<Long> findTaskIdsByCollaboratorId(long collaboratorId) throws TaskManagerException;
+    Long findSubtaskIdForCollaboratorTask(long collaboratorId, long taskId) throws TaskManagerException;
 }

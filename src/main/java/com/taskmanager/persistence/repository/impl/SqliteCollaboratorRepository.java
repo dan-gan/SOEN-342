@@ -175,6 +175,36 @@ public class SqliteCollaboratorRepository implements CollaboratorRepository {
         return ids;
     }
 
+    @Override
+    public List<Long> findTaskIdsByCollaboratorId(long collaboratorId) throws TaskManagerException {
+        String sql = "SELECT task_id FROM task_collaborators WHERE collaborator_id = ?";
+        List<Long> ids = new ArrayList<>();
+        try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
+            ps.setLong(1, collaboratorId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) ids.add(rs.getLong("task_id"));
+            }
+        } catch (SQLException e) {
+            throw new TaskManagerException("Failed to find task ids for collaborator", e);
+        }
+        return ids;
+    }
+
+    @Override
+    public Long findSubtaskIdForCollaboratorTask(long collaboratorId, long taskId) throws TaskManagerException {
+        String sql = "SELECT subtask_id FROM task_collaborators WHERE collaborator_id = ? AND task_id = ?";
+        try (PreparedStatement ps = db.getConnection().prepareStatement(sql)) {
+            ps.setLong(1, collaboratorId);
+            ps.setLong(2, taskId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getLong("subtask_id");
+            }
+        } catch (SQLException e) {
+            throw new TaskManagerException("Failed to find subtask for collaborator/task", e);
+        }
+        return null;
+    }
+
     private Collaborator map(ResultSet rs) throws SQLException {
         return new Collaborator(
             rs.getLong("id"),

@@ -123,6 +123,14 @@ public class CollaboratorService {
         return warnings;
     }
 
+    public List<Long> getAssignedTaskIds(long collaboratorId) throws TaskManagerException {
+        return collaboratorRepo.findTaskIdsByCollaboratorId(collaboratorId);
+    }
+
+    public Long getSubtaskIdForTask(long collaboratorId, long taskId) throws TaskManagerException {
+        return collaboratorRepo.findSubtaskIdForCollaboratorTask(collaboratorId, taskId);
+    }
+
     public List<Collaborator> listAll() throws TaskManagerException {
         return collaboratorRepo.findAll();
     }

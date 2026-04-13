@@ -3,8 +3,12 @@ package com.taskmanager.cli;
 import com.taskmanager.domain.model.Collaborator;
 import com.taskmanager.domain.model.CollaboratorCategory;
 import com.taskmanager.domain.model.Project;
+import com.taskmanager.domain.model.Subtask;
+import com.taskmanager.domain.model.Task;
 import com.taskmanager.domain.service.CollaboratorService;
 import com.taskmanager.domain.service.ProjectService;
+import com.taskmanager.domain.service.SubtaskService;
+import com.taskmanager.domain.service.TaskService;
 import com.taskmanager.exception.TaskManagerException;
 
 import java.util.List;
@@ -14,10 +18,15 @@ public class CollaboratorMenu {
 
     private final CollaboratorService collaboratorSvc;
     private final ProjectService projectSvc;
+    private final TaskService taskSvc;
+    private final SubtaskService subtaskSvc;
 
-    public CollaboratorMenu(CollaboratorService collaboratorSvc, ProjectService projectSvc) {
+    public CollaboratorMenu(CollaboratorService collaboratorSvc, ProjectService projectSvc,
+                            TaskService taskSvc, SubtaskService subtaskSvc) {
         this.collaboratorSvc = collaboratorSvc;
         this.projectSvc = projectSvc;
+        this.taskSvc = taskSvc;
+        this.subtaskSvc = subtaskSvc;
     }
 
     public void show() {
@@ -25,8 +34,8 @@ public class CollaboratorMenu {
             ConsoleUtils.println("\n--- Collaborators ---");
             ConsoleUtils.println("1. List all collaborators");
             ConsoleUtils.println("2. Create collaborator");
-            ConsoleUtils.println("3. Add collaborator to project");
-            ConsoleUtils.println("4. List collaborators in project");
+            ConsoleUtils.println("3. View collaborator details");
+            ConsoleUtils.println("4. Add collaborator to project");
             ConsoleUtils.println("5. Assign collaborator to task");
             ConsoleUtils.println("6. Change collaborator category");
             ConsoleUtils.println("7. Set category limit");
@@ -35,8 +44,8 @@ public class CollaboratorMenu {
             switch (choice) {
                 case 1 -> handleListAll();
                 case 2 -> handleCreate();
-                case 3 -> handleAdd();
-                case 4 -> handleList();
+                case 3 -> handleDetail();
+                case 4 -> handleAdd();
                 case 5 -> handleAssign();
                 case 6 -> handleChangeCategory();
                 case 7 -> handleSetCategoryLimit();
@@ -69,6 +78,64 @@ public class CollaboratorMenu {
         }
     }
 
+    private void handleDetail() {
+        try {
+            long id = ConsoleUtils.readInt("Collaborator ID: ");
+            Collaborator c = collaboratorSvc.getById(id);
+            int open  = collaboratorSvc.countOpenTasks(id);
+            int limit = c.getCategory().getOpenTaskLimit();
+
+            ConsoleUtils.println("\n=== Collaborator #" + c.getId() + " ===");
+            ConsoleUtils.println("Name:     " + c.getName());
+            ConsoleUtils.println("Category: " + c.getCategory() + "  (limit: " + limit + ")");
+            ConsoleUtils.println("Load:     " + open + "/" + limit
+                + (open > limit ? "  [OVERLOADED]" : open == limit ? "  [AT LIMIT]" : ""));
+
+            // Project
+            String projectDisplay = "(none)";
+            if (c.getProjectId() != 0) {
+                try {
+                    Project p = projectSvc.getById(c.getProjectId());
+                    projectDisplay = "[" + p.getId() + "] " + p.getName();
+                } catch (TaskManagerException ignored) {
+                    projectDisplay = String.valueOf(c.getProjectId());
+                }
+            }
+            ConsoleUtils.println("Project:  " + projectDisplay);
+
+            // Assigned tasks + subtask per task
+            List<Long> taskIds = collaboratorSvc.getAssignedTaskIds(id);
+            ConsoleUtils.println("\nAssigned Tasks (" + taskIds.size() + "):");
+            if (taskIds.isEmpty()) {
+                ConsoleUtils.println("  (none)");
+            } else {
+                ConsoleUtils.printTable(
+                    List.of("Task ID", "Title", "Status", "Due Date", "Subtask", "Subtask Done"),
+                    taskIds.stream().map(tid -> {
+                        String title = "", status = "", due = "", subtaskTitle = "", subtaskDone = "";
+                        try {
+                            Task t = taskSvc.getById(tid);
+                            title  = t.getTitle();
+                            status = ConsoleUtils.colorStatus(t.getStatus().name());
+                            due    = t.getDueDate() != null ? t.getDueDate().toString() : "";
+                        } catch (TaskManagerException ignored) {}
+                        try {
+                            Long subtaskId = collaboratorSvc.getSubtaskIdForTask(id, tid);
+                            if (subtaskId != null) {
+                                Subtask s = subtaskSvc.getById(subtaskId);
+                                subtaskTitle = s.getTitle();
+                                subtaskDone  = s.isCompleted() ? "yes" : "no";
+                            }
+                        } catch (TaskManagerException ignored) {}
+                        return List.of(String.valueOf(tid), title, status, due, subtaskTitle, subtaskDone);
+                    }).collect(Collectors.toList())
+                );
+            }
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
     private void handleCreate() {
         try {
             String name = ConsoleUtils.readString("Collaborator name: ");
@@ -93,18 +160,6 @@ public class CollaboratorMenu {
         }
     }
 
-    private void handleList() {
-        try {
-            long projectId = ConsoleUtils.readInt("Project ID: ");
-            List<Collaborator> list = collaboratorSvc.listByProject(projectId);
-            ConsoleUtils.printTable(List.of("ID", "Name", "Category"),
-                list.stream().map(c -> List.of(
-                    String.valueOf(c.getId()), c.getName(), c.getCategory().name()
-                )).collect(Collectors.toList()));
-        } catch (TaskManagerException e) {
-            ConsoleUtils.printError(e.getMessage());
-        }
-    }
 
     private void handleAssign() {
         try {
