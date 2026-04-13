@@ -146,10 +146,11 @@ java -jar target/task-manager-jar-with-dependencies.jar
 - Fully functional system (all features implemented, SQLite persistence)
 
 ### Iteration 4
-- UML [Protocol] State Machine for Task — `Iterations/Iteration-4/StateMachine/`
-- Data Model (UML/ER) — `Iterations/Iteration-4/DataModel/`
+- UML [Protocol] State Machine for Task — `Iterations/Iteration-4/UmlStateMachine/`
+- Data Model (UML/ER) — `Iterations/Iteration-4/UmlDataModel/`
 - Final Class Diagram — `Iterations/Iteration-4/FinalClassDiagram/`
 - Final Domain Model — `Iterations/Iteration-4/FinalDomainModel/`
+- Final OCL Contract — `Iterations/Iteration-4/FinalOclContract/`
 - Demo video — see below
 
 ## Demo Video
