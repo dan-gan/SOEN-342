@@ -210,9 +210,51 @@ public class CollaboratorMenu {
                 collaboratorSvc.detectOverloadedCollaborators();
             if (warnings.isEmpty()) {
                 ConsoleUtils.println("No overloaded collaborators.");
-            } else {
-                ConsoleUtils.println("Overloaded collaborators (" + warnings.size() + "):");
-                warnings.forEach(w -> ConsoleUtils.printWarning(w.toString()));
+                return;
+            }
+            java.util.Map<Long, String> projectNames;
+            try { projectNames = projectSvc.listAll().stream()
+                .collect(Collectors.toMap(p -> p.getId(), p -> p.getName())); }
+            catch (TaskManagerException e) { projectNames = java.util.Collections.emptyMap(); }
+            final java.util.Map<Long, String> pNames = projectNames;
+
+            ConsoleUtils.println("\n[OVERLOADED COLLABORATORS — " + warnings.size() + "]");
+            for (com.taskmanager.domain.service.CollaboratorOverloadWarning w : warnings) {
+                Collaborator c = w.getCollaborator();
+                String project = c.getProjectId() != 0
+                    ? pNames.getOrDefault(c.getProjectId(), String.valueOf(c.getProjectId()))
+                    : "(none)";
+                ConsoleUtils.println("\n  #" + c.getId() + "  " + c.getName()
+                    + "  [" + c.getCategory() + "]"
+                    + "  Load: " + w.getOpenTaskCount() + "/" + w.getLimit()
+                    + "  Project: " + project);
+
+                List<Long> taskIds = collaboratorSvc.getAssignedTaskIds(c.getId());
+                if (taskIds.isEmpty()) {
+                    ConsoleUtils.println("  No assigned tasks.");
+                } else {
+                    ConsoleUtils.printTable(
+                        List.of("Task ID", "Title", "Status", "Due Date", "Subtask", "Done"),
+                        taskIds.stream().map(tid -> {
+                            String title = "", status = "", due = "", subtaskTitle = "", done = "";
+                            try {
+                                Task t = taskSvc.getById(tid);
+                                title  = t.getTitle();
+                                status = ConsoleUtils.colorStatus(t.getStatus().name());
+                                due    = t.getDueDate() != null ? t.getDueDate().toString() : "";
+                            } catch (TaskManagerException ignored) {}
+                            try {
+                                Long sid = collaboratorSvc.getSubtaskIdForTask(c.getId(), tid);
+                                if (sid != null) {
+                                    Subtask s = subtaskSvc.getById(sid);
+                                    subtaskTitle = s.getTitle();
+                                    done = s.isCompleted() ? "yes" : "no";
+                                }
+                            } catch (TaskManagerException ignored) {}
+                            return List.of(String.valueOf(tid), title, status, due, subtaskTitle, done);
+                        }).collect(Collectors.toList())
+                    );
+                }
             }
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
