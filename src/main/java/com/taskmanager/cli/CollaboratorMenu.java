@@ -40,8 +40,9 @@ public class CollaboratorMenu {
             ConsoleUtils.println("6. Change collaborator category");
             ConsoleUtils.println("7. Set category limit");
             ConsoleUtils.println("8. Delete collaborator");
+            ConsoleUtils.println("9. List overloaded collaborators");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 8);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 9);
             switch (choice) {
                 case 1 -> handleListAll();
                 case 2 -> handleCreate();
@@ -51,6 +52,7 @@ public class CollaboratorMenu {
                 case 6 -> handleChangeCategory();
                 case 7 -> handleSetCategoryLimit();
                 case 8 -> handleDelete();
+                case 9 -> handleOverloaded();
                 case 0 -> { return; }
             }
         }
@@ -197,6 +199,21 @@ public class CollaboratorMenu {
             int newLimit = ConsoleUtils.readInt("New limit (positive integer): ");
             collaboratorSvc.setCategoryLimit(cat, newLimit);
             ConsoleUtils.printSuccess("Limit for " + cat + " set to " + newLimit + ".");
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleOverloaded() {
+        try {
+            List<com.taskmanager.domain.service.CollaboratorOverloadWarning> warnings =
+                collaboratorSvc.detectOverloadedCollaborators();
+            if (warnings.isEmpty()) {
+                ConsoleUtils.println("No overloaded collaborators.");
+            } else {
+                ConsoleUtils.println("Overloaded collaborators (" + warnings.size() + "):");
+                warnings.forEach(w -> ConsoleUtils.printWarning(w.toString()));
+            }
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }

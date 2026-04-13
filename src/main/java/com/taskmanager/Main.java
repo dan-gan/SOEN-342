@@ -63,13 +63,12 @@ public class Main {
         TaskMenu          taskMenu          = new TaskMenu(taskSvc, subtaskSvc, tagSvc, projectSvc, activitySvc);
         ProjectMenu       projectMenu       = new ProjectMenu(projectSvc, taskSvc, collaboratorSvc);
         CollaboratorMenu  collaboratorMenu  = new CollaboratorMenu(collaboratorSvc, projectSvc, taskSvc, subtaskSvc);
-        OverloadMenu      overloadMenu      = new OverloadMenu(collaboratorSvc);
         SearchMenu        searchMenu        = new SearchMenu(searchSvc, projectSvc, tagSvc, csvSvc, icalGateway, subtaskSvc);
         RecurrenceMenu    recurrenceMenu    = new RecurrenceMenu(recurrenceSvc);
         ExportImportMenu  exportImportMenu  = new ExportImportMenu(csvSvc, icalGateway, searchSvc,
                                                                     projectSvc, taskSvc, subtaskSvc);
 
-        App app = new App(taskMenu, projectMenu, collaboratorMenu, overloadMenu,
+        App app = new App(taskMenu, projectMenu, collaboratorMenu,
                           searchMenu, recurrenceMenu, exportImportMenu);
 
         Runtime.getRuntime().addShutdownHook(new Thread(db::close));
