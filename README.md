@@ -1,3 +1,6 @@
+## Demo
+[![Watch the video](https://img.youtube.com/vi/p1abm78-oII/maxresdefault.jpg)](https://youtu.be/p1abm78-oII)
+
 ## Personal Task Management System (PTMS)
 
 dangan: Daniel Ganchev - 40315755 - Team Lead
@@ -185,7 +188,7 @@ All search results offer CSV or iCal export immediately after display.
 
 ## Demo Video
 
-TODO: Record and upload 5-minute demo video. Add link here once uploaded.
+https://youtu.be/p1abm78-oII
 
 ---
 
