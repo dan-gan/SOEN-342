@@ -39,8 +39,9 @@ public class CollaboratorMenu {
             ConsoleUtils.println("5. Assign collaborator to task");
             ConsoleUtils.println("6. Change collaborator category");
             ConsoleUtils.println("7. Set category limit");
+            ConsoleUtils.println("8. Delete collaborator");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 7);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 8);
             switch (choice) {
                 case 1 -> handleListAll();
                 case 2 -> handleCreate();
@@ -49,6 +50,7 @@ public class CollaboratorMenu {
                 case 5 -> handleAssign();
                 case 6 -> handleChangeCategory();
                 case 7 -> handleSetCategoryLimit();
+                case 8 -> handleDelete();
                 case 0 -> { return; }
             }
         }
@@ -195,6 +197,19 @@ public class CollaboratorMenu {
             int newLimit = ConsoleUtils.readInt("New limit (positive integer): ");
             collaboratorSvc.setCategoryLimit(cat, newLimit);
             ConsoleUtils.printSuccess("Limit for " + cat + " set to " + newLimit + ".");
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleDelete() {
+        try {
+            long id = ConsoleUtils.readInt("Collaborator ID: ");
+            Collaborator c = collaboratorSvc.getById(id);
+            if (ConsoleUtils.readYesNo("Delete collaborator \"" + c.getName() + "\"?")) {
+                collaboratorSvc.deleteCollaborator(id);
+                ConsoleUtils.printSuccess("Collaborator deleted.");
+            }
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }

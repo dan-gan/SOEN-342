@@ -147,6 +147,11 @@ public class CollaboratorService {
         return requireCollaborator(collaboratorId);
     }
 
+    public void deleteCollaborator(long collaboratorId) throws TaskManagerException {
+        requireCollaborator(collaboratorId);
+        collaboratorRepo.delete(collaboratorId);
+    }
+
     public void setCategoryLimit(CollaboratorCategory category, int limit) throws TaskManagerException {
         if (category == null) throw new ValidationException("Category cannot be null.");
         try {
