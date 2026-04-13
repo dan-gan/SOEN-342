@@ -11,6 +11,35 @@ public class ConsoleUtils {
     private static final Scanner scanner = new Scanner(System.in);
     private static final int PAGE_SIZE = 20;
 
+    // ANSI colors
+    private static final String RESET  = "\u001B[0m";
+    private static final String RED    = "\u001B[31m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String GREEN  = "\u001B[32m";
+    private static final String CYAN   = "\u001B[36m";
+    private static final String GRAY   = "\u001B[90m";
+    private static final String BOLD   = "\u001B[1m";
+
+    private static final String ANSI_PATTERN = "\u001B\\[[\\d;]*m";
+
+    public static String colorPriority(String priority) {
+        return switch (priority) {
+            case "HIGH"   -> BOLD + RED    + priority + RESET;
+            case "MEDIUM" -> BOLD + YELLOW + priority + RESET;
+            case "LOW"    -> BOLD + GREEN  + priority + RESET;
+            default       -> priority;
+        };
+    }
+
+    public static String colorStatus(String status) {
+        return switch (status) {
+            case "OPEN"      -> BOLD + CYAN + status + RESET;
+            case "COMPLETED" -> BOLD + GREEN + status + RESET;
+            case "CANCELLED" -> GRAY + status + RESET;
+            default          -> status;
+        };
+    }
+
     public static String readString(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -85,7 +114,10 @@ public class ConsoleUtils {
         for (List<String> row : rows) {
             for (int i = 0; i < Math.min(row.size(), widths.length); i++) {
                 String cell = row.get(i);
-                if (cell != null && cell.length() > widths[i]) widths[i] = Math.min(cell.length(), 40);
+                if (cell != null) {
+                    int vlen = visibleLength(cell);
+                    if (vlen > widths[i]) widths[i] = Math.min(vlen, 40);
+                }
             }
         }
 
@@ -125,10 +157,21 @@ public class ConsoleUtils {
         StringBuilder sb = new StringBuilder("|");
         for (int i = 0; i < widths.length; i++) {
             String cell = (i < cells.size() && cells.get(i) != null) ? cells.get(i) : "";
-            if (cell.length() > 40) cell = cell.substring(0, 37) + "...";
-            sb.append(" ").append(String.format("%-" + widths[i] + "s", cell)).append(" |");
+            int vlen = visibleLength(cell);
+            if (vlen > 40) cell = stripAnsi(cell).substring(0, 37) + "...";
+            // Pad based on visible length so ANSI codes don't shift columns
+            int pad = widths[i] - visibleLength(cell);
+            sb.append(" ").append(cell).append(" ".repeat(Math.max(0, pad))).append(" |");
         }
         return sb.toString();
+    }
+
+    private static int visibleLength(String s) {
+        return s.replaceAll(ANSI_PATTERN, "").length();
+    }
+
+    private static String stripAnsi(String s) {
+        return s.replaceAll(ANSI_PATTERN, "");
     }
 
     public static void println(String msg) { System.out.println(msg); }

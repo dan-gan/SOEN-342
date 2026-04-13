@@ -167,7 +167,7 @@ public class SearchMenu {
         ConsoleUtils.printTable(
             List.of("ID", "Title", "Priority", "Status", "Due Date", "Project"),
             tasks.stream().map(t -> List.of(
-                String.valueOf(t.getId()), t.getTitle(), t.getPriority().name(), t.getStatus().name(),
+                String.valueOf(t.getId()), t.getTitle(), ConsoleUtils.colorPriority(t.getPriority().name()), ConsoleUtils.colorStatus(t.getStatus().name()),
                 t.getDueDate() != null ? t.getDueDate().toString() : "",
                 t.getProjectId() != null ? projectNames2.getOrDefault(t.getProjectId(), String.valueOf(t.getProjectId())) : ""
             )).collect(java.util.stream.Collectors.toList())

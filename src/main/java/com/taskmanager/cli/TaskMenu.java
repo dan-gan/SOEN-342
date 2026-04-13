@@ -211,7 +211,7 @@ public class TaskMenu {
         final java.util.Map<Long, String> pNames = projectNames;
         ConsoleUtils.printTable(List.of("ID", "Title", "Priority", "Status", "Due Date", "Project"),
             tasks.stream().map(t -> List.of(
-                String.valueOf(t.getId()), t.getTitle(), t.getPriority().name(), t.getStatus().name(),
+                String.valueOf(t.getId()), t.getTitle(), ConsoleUtils.colorPriority(t.getPriority().name()), ConsoleUtils.colorStatus(t.getStatus().name()),
                 t.getDueDate() != null ? t.getDueDate().toString() : "",
                 t.getProjectId() != null ? pNames.getOrDefault(t.getProjectId(), String.valueOf(t.getProjectId())) : ""
             )).collect(Collectors.toList()));
@@ -222,8 +222,8 @@ public class TaskMenu {
         ConsoleUtils.println("Title:       " + task.getTitle());
         ConsoleUtils.println("Description: " + nvl(task.getDescription()));
         ConsoleUtils.println("Created:     " + task.getCreationDate());
-        ConsoleUtils.println("Priority:    " + task.getPriority());
-        ConsoleUtils.println("Status:      " + task.getStatus());
+        ConsoleUtils.println("Priority:    " + ConsoleUtils.colorPriority(task.getPriority().name()));
+        ConsoleUtils.println("Status:      " + ConsoleUtils.colorStatus(task.getStatus().name()));
         ConsoleUtils.println("Due Date:    " + (task.getDueDate() != null ? task.getDueDate() : "none"));
         String projectDisplay = "none";
         if (task.getProjectId() != null) {
