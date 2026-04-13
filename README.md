@@ -70,22 +70,54 @@ java -jar target/task-manager-jar-with-dependencies.jar
 | Alice | SENIOR | 1 | 2 | Can take 1 more |
 | Bob | SENIOR | 2 | 2 | **AT LIMIT** — next assignment throws |
 | Carol | INTERMEDIATE | 1 | 5 | Well below limit |
-| Dave | JUNIOR | 2 | 1 (lowered) | **OVERLOADED** — appears in overload menu |
+| Dave | JUNIOR | 2 | 1 (lowered) | **OVERLOADED** — appears in overload list |
 
 ---
 
 ## Main Menu
 
 ```
-1. Tasks          — create, view, update, status changes, subtasks, activity history
-2. Projects       — create and manage projects
-3. Collaborators  — add, assign, change category, set category limit
-4. Overloaded     — list collaborators currently over their open-task limit
-5. Search         — filter by keyword / date / priority / status / project / tag / day of week
-                    export search results to CSV or iCal
-6. Recurring      — create recurring task series (daily / weekly / monthly)
-7. Export/Import  — CSV import/export, iCal export (all / by project / open / single task)
+1. Tasks          — create, view, update, status changes, subtasks, activity history, delete
+2. Projects       — create, list (with task/collaborator counts), view details, update, delete
+3. Collaborators  — create (with project), list, view details, update (name/category/project),
+                    assign to task, set category limit, delete, list overloaded
+4. Search         — see Search menu below
+5. Recurring      — create recurring task series (daily / weekly / monthly)
+6. Export/Import  — CSV import/export, iCal export (all / by project / open / single task)
 0. Exit
+```
+
+### Search Menu
+
+```
+1. Search with all criteria    — combine any/all filters in one pass
+2. Search by keyword           — matches title or description
+3. Search by status            — OPEN / COMPLETED / CANCELLED
+4. Search by priority          — LOW / MEDIUM / HIGH
+5. Search by project           — lists available projects, search by name
+6. Search by tag               — lists available tags, search by name
+7. Search by date →
+     1. Exact due date
+     2. Due date range (from / to)
+     3. Day of week (MON–SUN)
+8. List all open tasks         — sorted by due date ascending (default view)
+```
+
+All search results offer CSV or iCal export immediately after display.
+
+---
+
+## Collaborator Menu
+
+```
+1. Create collaborator         — name, category, project (one step)
+2. List all collaborators      — shows open/limit load and project per collaborator
+3. View collaborator details   — identity, load, project, assigned tasks + subtask status
+4. Update collaborator         — change name, category, and/or project; shows overload warnings
+5. Assign collaborator to task — enforces category limit (throws if at limit)
+6. Set category limit          — change open-task limit for SENIOR / INTERMEDIATE / JUNIOR
+7. Delete collaborator
+8. List overloaded collaborators — shows full detail: load, project, tasks, subtask status
 ```
 
 ---
@@ -105,18 +137,16 @@ java -jar target/task-manager-jar-with-dependencies.jar
 
 ```
 /Iterations
-    /Iteration-1    — Use case diagram, domain model, SSDs, contracts
-    /Iteration-2    — Updated diagrams, interaction diagrams, class diagram
-    /Iteration-3    — Updated use case diagram, sequence diagram (iCal export)
+    /Archives       — Iterations 1–3 artifacts (archived)
     /Iteration-4    — Final class diagram, domain model, state machine, data model  ← final artifacts
 /src/main/java/com/taskmanager
-    /cli            — Menu classes (App, TaskMenu, CollaboratorMenu, SearchMenu, ...)
-    /domain/model   — Domain entities (Task, Project, Collaborator, ...)
-    /domain/service — Business logic services (TaskService, CollaboratorService, ...)
+    /cli            — Menu classes (App, TaskMenu, ProjectMenu, CollaboratorMenu, SearchMenu, ...)
+    /domain/model   — Domain entities (Task, Project, Collaborator, Tag, Subtask, ...)
+    /domain/service — Business logic + OCL enforcement (TaskService, CollaboratorService, ...)
     /domain/gateway — iCal Gateway pattern (ICalGateway, ICalGatewayImpl)
     /persistence    — DatabaseManager + repository interfaces and SQLite implementations
     /exception      — Typed exceptions (ValidationException, CollaboratorOverloadException, ...)
-/src/test/java      — IntegrationTest (14 tests, in-memory SQLite)
+/src/test/java      — IntegrationTest (in-memory SQLite, no side effects)
 ```
 
 > **Final graded artifacts** are in `Iterations/Iteration-4/`.
@@ -142,12 +172,12 @@ java -jar target/task-manager-jar-with-dependencies.jar
 - Updated Use Case Diagram (iCal + overload use cases)
 - Updated Class Diagram (Gateway pattern, OCL constraints)
 - Sequence Diagram for iCal export
-- OCL constraints
+- OCL constraints (4 constraints, formally specified)
 - Fully functional system (all features implemented, SQLite persistence)
 
 ### Iteration 4
-- UML [Protocol] State Machine for Task — `Iterations/Iteration-4/StateMachine/`
-- Data Model (UML/ER) — `Iterations/Iteration-4/DataModel/`
+- UML [Protocol] State Machine for Task — `Iterations/Iteration-4/UmlStateMachine/`
+- Data Model (UML/ER) — `Iterations/Iteration-4/UmlDataModel/`
 - Final Class Diagram — `Iterations/Iteration-4/FinalClassDiagram/`
 - Final Domain Model — `Iterations/Iteration-4/FinalDomainModel/`
 - Demo video — see below
