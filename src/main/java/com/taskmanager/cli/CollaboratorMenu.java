@@ -24,20 +24,22 @@ public class CollaboratorMenu {
         while (true) {
             ConsoleUtils.println("\n--- Collaborators ---");
             ConsoleUtils.println("1. List all collaborators");
-            ConsoleUtils.println("2. Add collaborator to project");
-            ConsoleUtils.println("3. List collaborators in project");
-            ConsoleUtils.println("4. Assign collaborator to task");
-            ConsoleUtils.println("5. Change collaborator category");
-            ConsoleUtils.println("6. Set category limit");
+            ConsoleUtils.println("2. Create collaborator");
+            ConsoleUtils.println("3. Add collaborator to project");
+            ConsoleUtils.println("4. List collaborators in project");
+            ConsoleUtils.println("5. Assign collaborator to task");
+            ConsoleUtils.println("6. Change collaborator category");
+            ConsoleUtils.println("7. Set category limit");
             ConsoleUtils.println("0. Back");
-            int choice = ConsoleUtils.readInt("Choose: ", 0, 6);
+            int choice = ConsoleUtils.readInt("Choose: ", 0, 7);
             switch (choice) {
                 case 1 -> handleListAll();
-                case 2 -> handleAdd();
-                case 3 -> handleList();
-                case 4 -> handleAssign();
-                case 5 -> handleChangeCategory();
-                case 6 -> handleSetCategoryLimit();
+                case 2 -> handleCreate();
+                case 3 -> handleAdd();
+                case 4 -> handleList();
+                case 5 -> handleAssign();
+                case 6 -> handleChangeCategory();
+                case 7 -> handleSetCategoryLimit();
                 case 0 -> { return; }
             }
         }
@@ -67,14 +69,25 @@ public class CollaboratorMenu {
         }
     }
 
-    private void handleAdd() {
+    private void handleCreate() {
         try {
-            long projectId = ConsoleUtils.readInt("Project ID: ");
-            projectSvc.getById(projectId);
             String name = ConsoleUtils.readString("Collaborator name: ");
             CollaboratorCategory cat = readCategory();
-            Collaborator c = collaboratorSvc.addCollaboratorToProject(name, cat, projectId);
-            ConsoleUtils.printSuccess("Collaborator added: [" + c.getId() + "] " + c.getName() + " (" + c.getCategory() + ")");
+            Collaborator c = collaboratorSvc.createCollaborator(name, cat);
+            ConsoleUtils.printSuccess("Collaborator created: [" + c.getId() + "] " + c.getName() + " (" + c.getCategory() + ")");
+        } catch (TaskManagerException e) {
+            ConsoleUtils.printError(e.getMessage());
+        }
+    }
+
+    private void handleAdd() {
+        try {
+            long collaboratorId = ConsoleUtils.readInt("Collaborator ID: ");
+            collaboratorSvc.getById(collaboratorId);
+            long projectId = ConsoleUtils.readInt("Project ID: ");
+            projectSvc.getById(projectId);
+            collaboratorSvc.linkToProject(collaboratorId, projectId);
+            ConsoleUtils.printSuccess("Collaborator linked to project.");
         } catch (TaskManagerException e) {
             ConsoleUtils.printError(e.getMessage());
         }

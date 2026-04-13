@@ -27,6 +27,23 @@ public class CollaboratorService {
         this.activitySvc = activitySvc;
     }
 
+    public Collaborator createCollaborator(String name, CollaboratorCategory category)
+            throws TaskManagerException {
+        if (name == null || name.isBlank()) throw new ValidationException("Collaborator name cannot be empty.");
+        if (category == null) throw new ValidationException("Collaborator category is required.");
+        Collaborator collaborator = new Collaborator();
+        collaborator.setName(name.trim());
+        collaborator.setCategory(category);
+        collaborator.setProjectId(0);
+        return collaboratorRepo.save(collaborator);
+    }
+
+    public void linkToProject(long collaboratorId, long projectId) throws TaskManagerException {
+        Collaborator collaborator = requireCollaborator(collaboratorId);
+        collaborator.setProjectId(projectId);
+        collaboratorRepo.update(collaborator);
+    }
+
     public Collaborator addCollaboratorToProject(String name, CollaboratorCategory category, long projectId)
             throws TaskManagerException {
         if (name == null || name.isBlank()) throw new ValidationException("Collaborator name cannot be empty.");
